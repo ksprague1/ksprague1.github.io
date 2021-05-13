@@ -198,7 +198,8 @@ stepslider.oninput = function() {
   stepsperframe=10*this.value;
 }
 KTslider.oninput = function() {
-  kT = 2*Math.exp(this.value/25);
+  kT = 2*Math.exp(this.value/20);
+  //console.log(kT);
 }
 
 

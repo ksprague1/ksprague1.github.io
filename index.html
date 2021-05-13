@@ -7,7 +7,7 @@
             }
 
             .slider {
-              -webkit-appearance: none;
+              /*-webkit-appearance: none;*/
               width: 100%;
               height: 15px;
               border-radius: 5px;
@@ -18,32 +18,13 @@
               transition: opacity .2s;
             }
 
-            .slider:hover {
-              opacity: 1;
-            }
-
-            .slider::-webkit-slider-thumb {
-              -webkit-appearance: none;
-              appearance: none;
-              width: 25px;
-              height: 25px;
-              border-radius: 50%;
-              background: #04AA6D;
-              cursor: pointer;
-            }
-
-            .slider::-moz-range-thumb {
-              width: 25px;
-              height: 25px;
-              border-radius: 50%;
-              background: #04AA6D;
-              cursor: pointer;
-            }
             </style>      
         <div class="slidecontainer">
-          <input type="range" min="1" max="100" value="50" class="slider" id="kT">
+          Temperature:
+          <input type="range" min="-50" max="50" value="0" class="slider" id="kT">
         </div>
         <div class="slidecontainer">
+          Speed:
           <input type="range" min="10" max="100" value="1" class="slider" id="steps">
         </div>
         <script defer src="./test.js"></script>
