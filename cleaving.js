@@ -251,31 +251,35 @@ function setpixels(ctx,grid){
     ctx.putImageData(imgData, 0, 0);
 }
 
-var KTslider = document.getElementById("kT");
+const $ = q => document.getElementById(q);
+
+var KTslider = $("kT");
 var kT = 1.0
 
-var alphaslider = document.getElementById("alpha");
+var alphaslider = $("alpha");
 var alpha = 0.0;
 
-var Nslider = document.getElementById("N");
+var Nslider = $("N");
 var N = 0;
 
-var stepslider = document.getElementById("steps");
+var stepslider = $("steps");
 var stepsperframe=100;
-
 
 
 stepslider.oninput = function() {
   stepsperframe=10*this.value;
+  $('stepstext').innerHTML = stepsperframe +'x';
 }
 alphaslider.oninput = function() {
   alpha=this.value/100;
 }
 Nslider.oninput = function() {
   N=this.value;
+  $('Ntext').innerHTML = N>0?N:'Any';
 }
 KTslider.oninput = function() {
-  kT = 2*Math.exp(this.value/20);
+  kT = Math.exp(this.value/20);
+  $('kTtext').innerHTML = kT.toFixed(3);
   //console.log(kT);
 }
 

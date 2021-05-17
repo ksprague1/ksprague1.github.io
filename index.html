@@ -20,19 +20,19 @@
 
             </style>      
         <div class="slidecontainer">
-          Temperature:
+          Temperature: <span id="kTtext">1.000</span><br>
           <input type="range" min="-50" max="50" value="0" class="slider" id="kT">
         </div>
         <div class="slidecontainer">
-          Speed:
-          <input type="range" min="10" max="100" value="1" class="slider" id="steps">
+          Speed: <span id="stepstext">10 x</span><br>
+          <input type="range" min="1" max="100" value="1" class="slider" id="steps">
         </div>
         <div class="slidecontainer">
-          Pseudo Temperature Multiplier:
+          Pseudo Temp Range:
           <input type="range" min="0" max="200" value="0" class="slider" id="alpha">
         </div>
         <div class="slidecontainer">
-          Maximum Cluster Size:
+          Max Cluster Size: <span id="Ntext">Any</span><br>
           <input type="range" min="0" max="2000" value="0" class="slider" id="N">
         </div>
         <script defer src="cleaving.js"></script>
