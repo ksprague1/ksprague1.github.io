@@ -1,6 +1,6 @@
 console.log('hello world');
 console.log(Math.random());
-
+console.log([].length)
 
 //first up is probably the rejection free algorithm so I don't have to do any array copying 
 
@@ -42,28 +42,29 @@ function sum(arr){
 }
 
 
-function clustering(x,y,grid,xarr,yarr,p,sx,sy){
+function clustering(x,y,grid,xarr,yarr,p,sx,sy,N){
     //it's important to set the grid area to 0 initially so
     //there is no infinite recursion
+    if (N>0 && xarr.length>N){return;}
     grid[x][y]=0
     xarr.push(x);
     yarr.push(y);
     //check to move the cluster in each direction
     if (grid[(x+1)%sx][y]==1 && Math.random()<=p){
-        clustering((x+1)%sx,y,grid,xarr,yarr,p,sx,sy);}
+        clustering((x+1)%sx,y,grid,xarr,yarr,p,sx,sy,N);}
     if (grid[(x-1+sx)%sx][y]==1 && Math.random()<=p){
-        clustering((x-1+sx)%sx,y,grid,xarr,yarr,p,sx,sy);}
+        clustering((x-1+sx)%sx,y,grid,xarr,yarr,p,sx,sy,N);}
     if (grid[x][(y+1)%sy]==1 && Math.random()<=p){
-        clustering(x,(y+1)%sy,grid,xarr,yarr,p,sx,sy);}
+        clustering(x,(y+1)%sy,grid,xarr,yarr,p,sx,sy,N);}
     if (grid[x][(y-1+sy)%sy]==1 && Math.random()<=p){
-        clustering(x,(y-1+sy)%sy,grid,xarr,yarr,p,sx,sy);}
+        clustering(x,(y-1+sy)%sy,grid,xarr,yarr,p,sx,sy,N);}
 }
 
-function make_cluster(x,y,grid,d,p){
+function make_cluster(x,y,grid,p,N){
     xarr=[];
     yarr=[];
     if (grid[x][y]==1){
-        clustering(x,y,grid,xarr,yarr,p,grid.length,grid[0].length)
+        clustering(x,y,grid,xarr,yarr,p,grid.length,grid[0].length,N)
     }
     for (var i=0;i<xarr.length;i++){
         grid[xarr[i]][yarr[i]]=1;
@@ -81,15 +82,59 @@ function addmod(arr,val,size,pos){
 }
 
 
-function Update(grid,JB){
+function Hamiltonian(grid,u,J){
+    sx=grid.length;
+    sy=grid[0].length;
+    s1=0;
+    s2=0;
+    for (var x=0;x<sx;x++){
+        for (var y=0;y<sy;y++){
+            s1+=grid[x][y]*(grid[x][(y+1)%sy]+grid[(x+1)%sx][y]);
+            s2+=grid[x][y];
+        }
+    }
+    return u*s2-J*s1
+}
+
+function Update(){
+    data=Cleaving(grid,1/kT,alpha,N,false);
+    if (data[1].length==0){return;}
+    newenergy=Hamiltonian(grid,1,1)
+    delta=newenergy-energy
+    A=data[0];
+    n = Math.random()
+    
+    n0 = A*Math.exp(-delta/kT)
+    if (n<=n0){
+        energy=newenergy;
+    }
+    else{
+        //console.log(n0)
+        L=data[1].length
+        for (var i=0;i<L;i++){
+            grid[data[3][i]][data[4][i]]=0;
+        }
+        for (var i=0;i<L;i++){
+            grid[data[1][i]][data[2][i]]=1;
+        }
+    }
+
+}
+
+
+
+function Cleaving(grid,JB,alpha,N,allowdiff){
     //The equation is: p = max(0,1 − exp[BEc(i,j)−BEI(i,j)])
     //here Ec = -J and EI=0
     //Note this is a ficticious hamiltonian since it considers an overlap
     //to have zero energy whereas in the real one an overlap has infinite
-    p=1-Math.exp(-JB)
+    scaler=2-Math.random()-alpha
+    // This line clips scaler to be in [0,1]
+    scaler= scaler < 0 ? 0: scaler> 1.0 ? 1.0 : scaler
+    p=1-Math.exp(-JB*scaler)
+    //clip p to be in [0,1)
     p= p < 0 ? 0: p> 0.9999999999999999 ? 0.9999999999999999 :  p
-    //Now we upper bound p to the largest floating point less than 1
-    //This number is 0.9999999999999999
+
     
     sx=grid.length;
     sy=grid[0].length;
@@ -108,7 +153,8 @@ function Update(grid,JB){
     y=pos[i][1];
     action=Math.floor(Math.random() * 6);
     
-    returns=make_cluster(x,y,grid,action,p);
+    returns=make_cluster(x,y,grid,p,N);
+    if (N>0 && xarr.length>N){return [1,[],[],[],[]];}
     xs=returns[0];
     ys=returns[1];
     
@@ -157,12 +203,28 @@ function Update(grid,JB){
         for (var i=0; i<xs.length;i++){
             grid[xs[i]][ys[i]]=1
         }
-        //console.log('sad');
+        return [1,[],[],[],[]];
     }
     else{
-    for (var i=0;i<rx.length;i++){
-        grid[rx[i]][ry[i]]=1;
+        qforward=1.0
+        qbackward=1.0
+        for (var i=0;i<rx.length;i++){
+            if (grid[(xs[i]-1+sx)%sx][ys[i]          ]==1){qforward*=(1-p);}
+            if (grid[(xs[i]+1)%sx   ][ys[i]          ]==1){qforward*=(1-p);}
+            if (grid[xs[i]          ][(ys[i]+1)%sy   ]==1){qforward*=(1-p);}
+            if (grid[xs[i]          ][(ys[i]-1+sy)%sy]==1){qforward*=(1-p);}
+            if (grid[(rx[i]-1+sx)%sx][ry[i]          ]==1){qbackward*=(1-p);}
+            if (grid[(rx[i]+1)%sx   ][ry[i]          ]==1){qbackward*=(1-p);}
+            if (grid[rx[i]          ][(ry[i]+1)%sy   ]==1){qbackward*=(1-p);}
+            if (grid[rx[i]          ][(ry[i]-1+sy)%sy]==1){qbackward*=(1-p);}
+        }
+        A=qbackward/qforward;
+    
+        for (var i=0;i<rx.length;i++){
+            grid[rx[i]][ry[i]]=1;
         }   
+        
+        return [A,xs,ys,rx,ry];
     }
     //console.log(x,y)
     //console.log(xs,ys);
@@ -191,11 +253,26 @@ function setpixels(ctx,grid){
 
 var KTslider = document.getElementById("kT");
 var kT = 1.0
+
+var alphaslider = document.getElementById("alpha");
+var alpha = 0.0;
+
+var Nslider = document.getElementById("N");
+var N = 0;
+
 var stepslider = document.getElementById("steps");
 var stepsperframe=100;
 
+
+
 stepslider.oninput = function() {
   stepsperframe=10*this.value;
+}
+alphaslider.oninput = function() {
+  alpha=this.value/100;
+}
+Nslider.oninput = function() {
+  N=this.value;
 }
 KTslider.oninput = function() {
   kT = 2*Math.exp(this.value/20);
@@ -207,7 +284,8 @@ function run(){
  for (var i=0;i<stepsperframe;i++){
  Update(grid,1/kT);
  }
- //console.log(sum(grid))
+    
+ //if (Math.random()<0.01){console.log(sum(grid))}
  setpixels(ctx,grid);
  window.requestAnimationFrame(run);
 }
@@ -221,6 +299,8 @@ console.log((-1+10)%5)
 xy=make_cluster(0,0,grid,0,0.8)
 console.log(xy);
 console.log(grid);
+energy=Hamiltonian(grid,1,1)
+console.log(energy)
 
 var canvas = document.getElementById('grid');
 console.log(canvas);
