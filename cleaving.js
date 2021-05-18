@@ -97,7 +97,7 @@ function Hamiltonian(grid,u,J){
 }
 
 function Update(){
-    data=Cleaving(grid,1/kT,alpha,N,false);
+    data=Cleaving(grid,1/kT,kval1/100,kval2/100,N,false);
     if (data[1].length==0){return;}
     newenergy=Hamiltonian(grid,1,1)
     delta=newenergy-energy
@@ -123,15 +123,15 @@ function Update(){
 
 
 
-function Cleaving(grid,JB,alpha,N,allowdiff){
+function Cleaving(grid,JB,a,b,N,allowdiff){
     //The equation is: p = max(0,1 − exp[BEc(i,j)−BEI(i,j)])
     //here Ec = -J and EI=0
     //Note this is a ficticious hamiltonian since it considers an overlap
     //to have zero energy whereas in the real one an overlap has infinite
-    scaler=2-Math.random()-alpha
+    scaler=a+Math.random()*(b-a)
     // This line clips scaler to be in [0,1]
     scaler= scaler < 0 ? 0: scaler> 1.0 ? 1.0 : scaler
-    p=1-Math.exp(-JB*scaler)
+    p=1-Math.exp(-JB*scaler);
     //clip p to be in [0,1)
     p= p < 0 ? 0: p> 0.9999999999999999 ? 0.9999999999999999 :  p
 
@@ -256,9 +256,10 @@ const $ = q => document.getElementById(q);
 var KTslider = $("kT");
 var kT = 1.0
 
-var alphaslider = $("alpha");
-var alpha = 0.0;
-
+var knob1 = $("r1");
+var kval1=0;
+var knob2 = $("r2")
+var kval2=100;
 var Nslider = $("N");
 var N = 0;
 
@@ -270,9 +271,21 @@ stepslider.oninput = function() {
   stepsperframe=10*this.value;
   $('stepstext').innerHTML = stepsperframe +'x';
 }
-alphaslider.oninput = function() {
-  alpha=this.value/100;
+knob1.oninput = function() {
+    kval1=parseInt(this.value);
+    if (kval2<kval1){
+    knob2.value=kval2=kval1;
+    }
+    size_update();
 }
+knob2.oninput = function() {
+    kval2=parseInt(this.value);
+    if (kval2<kval1){
+    knob1.value=kval1=kval2;
+    }
+    size_update();
+}
+    
 Nslider.oninput = function() {
   N=this.value;
   $('Ntext').innerHTML = N>0?N:'Any';
@@ -280,7 +293,17 @@ Nslider.oninput = function() {
 KTslider.oninput = function() {
   kT = Math.exp(this.value/20);
   $('kTtext').innerHTML = kT.toFixed(3);
+  size_update();
   //console.log(kT);
+}
+
+function size_update(){
+a=-8.55875772231678;
+b=4.587925919673518;
+c=16.576293268213103;
+p1=1-Math.exp(-kval1/100/kT)
+p2=1-Math.exp(-kval2/100/kT)
+$('cstext').innerHTML = p1.toFixed(4)+" to "+p2.toFixed(4);
 }
 
 

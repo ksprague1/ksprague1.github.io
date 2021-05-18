@@ -17,24 +17,82 @@
               -webkit-transition: .2s;
               transition: opacity .2s;
             }
+            
+            
+            .range-slider_flat {
+              width: 512px; /* Width of the outside container */
+              padding-top: 5px;
+              padding-bottom:20px;
+            }
 
-            </style>      
-        <div class="slidecontainer">
+            /* The slider itself */
+            .multislider {
+            margin: 0;
+            padding: 0;
+            border: 0;
+            outline: none;
+            background: transparent;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            width: 100%;
+            height: 0;
+            pointer-events: none;
+            }
+            
+            
+            .multislider.first::-webkit-slider-runnable-track {
+                cursor: default;
+                height: 1px; /* Required for Samsung internet based browsers */
+                outline: 0;
+                -webkit-appearance: none;
+                width: 100%;
+                height: 8.4px;
+                cursor: pointer;
+                border: 1px solid #e3e3e3;
+                background: #f4f4f4;
+                margin-top: 16px;
+            }
+            .multislider::-webkit-slider-thumb {
+                -webkit-appearance: none; 
+                pointer-events: auto; 
+                box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+                border: 1px solid #000000;
+                height: 24px;
+                width: 16px;
+                border-radius: 3px;
+                background: #9f9f9f;
+                cursor: pointer;
+                margin-top: -10px;
+            }
+            .multislider.second::-webkit-slider-runnable-track {
+                -webkit-appearance: none;
+                height: 8.4px;
+                margin-top: 18px;
+            }
+            
+            
+            
+            
+            </style>  
+          <div class="slidecontainer">
           Temperature: <span id="kTtext">1.000</span><br>
           <input type="range" min="-50" max="50" value="0" class="slider" id="kT">
-        </div>
-        <div class="slidecontainer">
           Speed: <span id="stepstext">10 x</span><br>
           <input type="range" min="1" max="100" value="1" class="slider" id="steps">
-        </div>
-        <div class="slidecontainer">
-          Pseudo Temp Range:
-          <input type="range" min="0" max="200" value="0" class="slider" id="alpha">
-        </div>
-        <div class="slidecontainer">
+          P-Range: <span id="cstext">Unknown</span><br>
+          <div class="range-slider_flat" >
+          <input type="range" min="0" max="100" value="0" class = "multislider first", id="r1">
+          <input type="range" min="0" max="100" value="100" class = "multislider second", id="r2">
+          </div>
+        
           Max Cluster Size: <span id="Ntext">Any</span><br>
           <input type="range" min="0" max="2000" value="0" class="slider" id="N">
-        </div>
+          </div>
+        
+        
+        
+        
+        
         <script defer src="cleaving.js"></script>
     </head>
 </html>
