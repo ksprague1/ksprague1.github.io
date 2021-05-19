@@ -97,9 +97,9 @@ function Hamiltonian(grid,u,J){
 }
 
 function Update(){
-    data=Cleaving(grid,1/kT,kval1/100,kval2/100,N,false);
-    if (data[1].length==0){return;}
-    newenergy=Hamiltonian(grid,1,1)
+    data=Cleaving(grid,1/kT,kval1/100,kval2/100,N,toggle);
+    if (data[1].length==0 && data[3].length==0){return;}
+    newenergy=Hamiltonian(grid,mew,1)
     delta=newenergy-energy
     A=data[0];
     n = Math.random()
@@ -110,11 +110,10 @@ function Update(){
     }
     else{
         //console.log(n0)
-        L=data[1].length
-        for (var i=0;i<L;i++){
+        for (var i=0;i<data[3].length;i++){
             grid[data[3][i]][data[4][i]]=0;
         }
-        for (var i=0;i<L;i++){
+        for (var i=0;i<data[1].length;i++){
             grid[data[1][i]][data[2][i]]=1;
         }
     }
@@ -123,7 +122,7 @@ function Update(){
 
 
 
-function Cleaving(grid,JB,a,b,N,allowdiff){
+function Cleaving(grid,JB,a,b,N,allowdiff){    
     //The equation is: p = max(0,1 − exp[BEc(i,j)−BEI(i,j)])
     //here Ec = -J and EI=0
     //Note this is a ficticious hamiltonian since it considers an overlap
@@ -139,6 +138,23 @@ function Cleaving(grid,JB,a,b,N,allowdiff){
     sx=grid.length;
     sy=grid[0].length;
     
+    
+    if (allowdiff && Math.random()<0.15){
+    x=Math.floor(Math.random() * sx);
+    y=Math.floor(Math.random() * sy);
+    if (grid[x][y]==0){
+    grid[x][y]=1;
+    //added a particle to the lattice
+    return [1,[],[],[x],[y]]
+    }
+    else{
+    grid[x][y]=0;
+    //removed a particle from the lattice
+    return [1,[x],[y],[],[]]
+    }
+    }
+    
+    
     var pos = [];
     for (var i=0;i<sx;i++){
         for (var j=0;j<sy;j++){
@@ -147,6 +163,7 @@ function Cleaving(grid,JB,a,b,N,allowdiff){
             }
         }
     }
+    if (pos.length==0){return [1,[],[],[],[]];}
     
     i=Math.floor(Math.random() * pos.length);
     x=pos[i][0];
@@ -253,54 +270,58 @@ function setpixels(ctx,grid){
 
 const $ = q => document.getElementById(q);
 
-var KTslider = $("kT");
 var kT = 1.0
-
-var knob1 = $("r1");
+var mew = 0.0;
+var toggle=false;
 var kval1=0;
-var knob2 = $("r2")
 var kval2=100;
-var Nslider = $("N");
 var N = 0;
-
-var stepslider = $("steps");
 var stepsperframe=100;
 
 
-stepslider.oninput = function() {
+$("steps").oninput = function() {
   stepsperframe=10*this.value;
   $('stepstext').innerHTML = stepsperframe +'x';
 }
-knob1.oninput = function() {
-    kval1=parseInt(this.value);
-    if (kval2<kval1){
-    knob2.value=kval2=kval1;
-    }
-    size_update();
+
+$("diff").oninput = function(){
+toggle = !toggle;
 }
-knob2.oninput = function() {
-    kval2=parseInt(this.value);
-    if (kval2<kval1){
-    knob1.value=kval1=kval2;
-    }
-    size_update();
+
+$("mew").oninput = function() {
+  mew = this.value/5.0;
+  $('mewtext').innerHTML = mew.toFixed(3);
+  energy=Hamiltonian(grid,mew,1);
 }
     
-Nslider.oninput = function() {
+$("N").oninput = function() {
   N=this.value;
   $('Ntext').innerHTML = N>0?N:'Any';
 }
-KTslider.oninput = function() {
+$("kT").oninput = function() {
   kT = Math.exp(this.value/20);
   $('kTtext').innerHTML = kT.toFixed(3);
   size_update();
   //console.log(kT);
 }
 
+//both knobs are for the same double slider so they push the other knob out of the way
+$("r1").oninput = function() {
+    kval1=parseInt(this.value);
+    if (kval2<kval1){
+    knob2.value=kval2=kval1;
+    }
+    size_update();
+}
+$("r2").oninput = function() {
+    kval2=parseInt(this.value);
+    if (kval2<kval1){
+    knob1.value=kval1=kval2;
+    }
+    size_update();
+}
+
 function size_update(){
-a=-8.55875772231678;
-b=4.587925919673518;
-c=16.576293268213103;
 p1=1-Math.exp(-kval1/100/kT)
 p2=1-Math.exp(-kval2/100/kT)
 $('cstext').innerHTML = p1.toFixed(4)+" to "+p2.toFixed(4);

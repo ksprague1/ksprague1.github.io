@@ -1,6 +1,6 @@
 <html>
     <head>
-        <canvas id="grid" width="512" height="512"></canvas>
+        <canvas id="grid" width=512 height=512></canvas>
         <style>
             .slidecontainer {
               width: 512px;
@@ -21,11 +21,12 @@
             
             .range-slider_flat {
               width: 512px; /* Width of the outside container */
+              /*make sure it does not overlap with other elements*/
               padding-top: 5px;
               padding-bottom:20px;
             }
 
-            /* The slider itself */
+            /* Set the slider to invisible and give it no size so they can overlap*/
             .multislider {
             margin: 0;
             padding: 0;
@@ -39,7 +40,7 @@
             pointer-events: none;
             }
             
-            
+            /*The first slider gets a visible track*/
             .multislider.first::-webkit-slider-runnable-track {
                 cursor: default;
                 height: 1px; /* Required for Samsung internet based browsers */
@@ -52,6 +53,7 @@
                 background: #f4f4f4;
                 margin-top: 16px;
             }
+            /*Making a thumb for each slider*/
             .multislider::-webkit-slider-thumb {
                 -webkit-appearance: none; 
                 pointer-events: auto; 
@@ -64,12 +66,15 @@
                 cursor: pointer;
                 margin-top: -10px;
             }
+            /*The second slider gets an invisible track as to not block the first slider*/
             .multislider.second::-webkit-slider-runnable-track {
                 -webkit-appearance: none;
                 height: 8.4px;
                 margin-top: 18px;
             }
-            
+            .slider2{
+            width:92%
+            }
             
             
             
@@ -77,6 +82,9 @@
           <div class="slidecontainer">
           Temperature: <span id="kTtext">1.000</span><br>
           <input type="range" min="-50" max="50" value="0" class="slider" id="kT">
+          Diffusion Constant: <span id="mewtext">0.000</span><br>
+          <input type="range" min="-50" max="50" value="0" class="slider2" id="mew">
+          <input type="checkbox" id="diff">
           Speed: <span id="stepstext">10 x</span><br>
           <input type="range" min="1" max="100" value="1" class="slider" id="steps">
           P-Range: <span id="cstext">Unknown</span><br>
