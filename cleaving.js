@@ -309,22 +309,22 @@ $("kT").oninput = function() {
 $("r1").oninput = function() {
     kval1=parseInt(this.value);
     if (kval2<kval1){
-    knob2.value=kval2=kval1;
+    $("r2").value=kval2=kval1;
     }
     size_update();
 }
 $("r2").oninput = function() {
     kval2=parseInt(this.value);
     if (kval2<kval1){
-    knob1.value=kval1=kval2;
+    $("r1").value=kval1=kval2;
     }
     size_update();
 }
 
 function size_update(){
-p1=1-Math.exp(-kval1/100/kT)
-p2=1-Math.exp(-kval2/100/kT)
-$('cstext').innerHTML = p1.toFixed(4)+" to "+p2.toFixed(4);
+p1=100*kT/kval1//1-Math.exp(-kval1/100/kT)
+p2=100*kT/kval2//1-Math.exp(-kval2/100/kT)
+$('cstext').innerHTML = p1.toFixed(3)+" to "+p2.toFixed(3);
 }
 
 
