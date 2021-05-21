@@ -1,7 +1,7 @@
 console.log('hello world');
 console.log(Math.random());
 console.log([].length)
-
+console.log(Math.pow(2,3));
 //first up is probably the rejection free algorithm so I don't have to do any array copying 
 
 //stole this recursive thing but gonna make not recursive
@@ -139,7 +139,7 @@ function Cleaving(grid,JB,a,b,N,allowdiff){
     sy=grid[0].length;
     
     
-    if (allowdiff && Math.random()<0.15){
+    if (allowdiff && Math.random()<GRAND_CANONICAL_PROB){
     x=Math.floor(Math.random() * sx);
     y=Math.floor(Math.random() * sy);
     if (grid[x][y]==0){
@@ -269,19 +269,24 @@ function setpixels(ctx,grid){
 }
 
 const $ = q => document.getElementById(q);
-
+const GRAND_CANONICAL_PROB=0.4
 var kT = 1.0
 var mew = 0.0;
 var toggle=false;
-var kval1=0;
+var kval1=100;
 var kval2=100;
 var N = 0;
 var stepsperframe=100;
-
+var startTime = 0;
 
 $("steps").oninput = function() {
-  stepsperframe=10*this.value;
-  $('stepstext').innerHTML = stepsperframe +'x';
+  stepsperframe=Math.pow(2,this.value)*grid.length*grid[0].length;
+  if (this.value>=0){
+  $('stepstext').innerHTML = Math.pow(2,this.value);
+  }
+  else{
+  $('stepstext').innerHTML = "1/"+Math.pow(2,-this.value);
+  }
 }
 
 $("diff").oninput = function(){
@@ -335,11 +340,18 @@ function run(){
     
  //if (Math.random()<0.01){console.log(sum(grid))}
  setpixels(ctx,grid);
+ var newtime=(new Date()).getTime()
+ var elapsedTime = (newtime - startTime) / 1000;// time in seconds
+ startTime=newtime
+ $('stepmeter').innerHTML = Number(stepsperframe/elapsedTime).toFixed(0);
  window.requestAnimationFrame(run);
 }
 
 INDX=0
 grid = zeros([128,128]);
+stepsperframe=Math.pow(2,-7)*grid.length*grid[0].length;
+$('stepstext').innerHTML = "1/"+Math.pow(2,7);
+
 random_ones([128,128],grid,2000)
 //grid[0][0]=1;
 console.log(grid);

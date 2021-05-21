@@ -2,6 +2,31 @@
     <head>
         <canvas id="grid" width=512 height=512></canvas>
         <style>
+            .collapsible {
+              background-color: #777;
+              color: white;
+              cursor: pointer;
+              padding: 0px 18px;
+              width: 100%;
+              border: none;
+              text-align: left;
+              outline: none;
+              font-size: 12px;
+              margin-top: 10px
+            }
+
+            .active, .collapsible:hover {
+              background-color: #555;
+            }
+
+            .content {
+              padding: 0 18px;
+              display: none;
+              overflow: hidden;
+              background-color: #f1f1f1;
+            }
+            
+            
             .slidecontainer {
               width: 512px;
             }
@@ -35,7 +60,7 @@
             background: transparent;
             -webkit-appearance: none;
             -moz-appearance: none;
-            width: 100%;
+            width: 90%;
             height: 0;
             pointer-events: none;
             }
@@ -82,25 +107,44 @@
           <div class="slidecontainer">
           Temperature: <span id="kTtext">1.000</span><br>
           <input type="range" min="-50" max="50" value="0" class="slider" id="kT">
-          Diffusion Constant: <span id="mewtext">0.000</span><br>
+          Chemical Potential: <span id="mewtext">0.000</span><br>
           <input type="range" min="-50" max="50" value="0" class="slider2" id="mew">
           <input type="checkbox" id="diff">
-          Speed: <span id="stepstext">10 x</span><br>
-          <input type="range" min="1" max="100" value="1" class="slider" id="steps">
+          Cell Updates Per Frame: <span id="stepstext">10 x</span>      (<span id="stepmeter">0</span>)<br>
+          <input type="range" min="-7" max="4" value="-7" class="slider" id="steps">
+              
+          <button type="button" class="collapsible">Advanced</button>
+          <div class="content">
           Proposal Temp: <span id="cstext">Unknown</span><br>
           <div class="range-slider_flat" >
-          <input type="range" min="0" max="100" value="0" class = "multislider first", id="r1">
+          <input type="range" min="0" max="100" value="100" class = "multislider first", id="r1">
           <input type="range" min="0" max="100" value="100" class = "multislider second", id="r2">
           </div>
         
           Max Cluster Size: <span id="Ntext">Any</span><br>
           <input type="range" min="0" max="2000" value="0" class="slider" id="N">
           </div>
+          </div>   
         
-        
-        
+   
         
         
         <script defer src="cleaving.js"></script>
+        <script>
+        var coll = document.getElementsByClassName("collapsible");
+        var i;
+
+        for (i = 0; i < coll.length; i++) {
+          coll[i].addEventListener("click", function() {
+            this.classList.toggle("active");
+            var content = this.nextElementSibling;
+            if (content.style.display === "block") {
+              content.style.display = "none";
+            } else {
+              content.style.display = "block";
+            }
+          });
+        }
+        </script>
     </head>
 </html>
