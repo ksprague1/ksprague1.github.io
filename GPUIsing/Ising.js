@@ -146,12 +146,12 @@ var stepsperframe=1;
 var startTime = 0;
 var on = false;
 $("steps").oninput = function() {
-  stepsperframe=Math.pow(2,this.value)*2;
+  stepsperframe=Math.pow(4,this.value)*2;
   if (this.value>=0){
-  $('stepstext').innerHTML = Math.pow(2,this.value);
+  $('stepstext').innerHTML = Math.pow(4,this.value);
   }
   else{
-  $('stepstext').innerHTML = "1/"+Math.pow(2,-this.value);
+  $('stepstext').innerHTML = "1/"+Math.pow(4,-this.value);
   }
 }
 $('stopbutton').addEventListener("click", function(){
@@ -207,7 +207,7 @@ INDX=0
 grid = zeros([SIZE,SIZE]);
 random_ones([SIZE,SIZE],grid,SIZE*SIZE*2/3)
 stepsperframe=Math.pow(2,-1)*2;
-$('stepstext').innerHTML = "1/"+Math.pow(2,1);
+$('stepstext').innerHTML = "1/"+Math.pow(4,1);
 var RGBData;
 var NumSpecies=0;
 //random_ones([128,128],grid,2000)
