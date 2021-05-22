@@ -159,6 +159,7 @@ function setpixels(ctx,grid){
 const $ = q => document.getElementById(q);
 const GRAND_CANONICAL_PROB=0.4
 const PREFILLED=1;
+const MAXDIMX=48;
 var kT = 1.0
 var mew = 0.0;
 var toggle=false;
@@ -180,6 +181,9 @@ $("steps").oninput = function() {
 $('stopbutton').addEventListener("click", function(){
     on = !on;
     $('stoptext').innerHTML=on? 'Stop':'Start';
+    if (on){
+        window.requestAnimationFrame(run);
+    }
 })
 
 $("mew").oninput = function() {
@@ -208,10 +212,14 @@ document.onpaste = function(pasteEvent) {
             img.onload = function(){
                 w=img.width;
                 h=img.height
+                if (w>MAXDIMX){   
+                    h = Math.floor(h*MAXDIMX/w);
+                    w=MAXDIMX;
+                }
                 scale=Math.floor(512/w);
                 canvas.width=w*scale;
                 canvas.height=h*scale;
-                ctx.drawImage(img, 0, 0);
+                ctx.drawImage(img, 0, 0,w,h);
                 grid = zeros([h,w]);
                 var imgData = ctx.getImageData(0, 0, w, h);
                 RGBData = imgData.data; 
@@ -236,7 +244,7 @@ document.onpaste = function(pasteEvent) {
 
 
 function run(){
- for (var i=0;i<stepsperframe && on;i++){
+ for (var i=0;i<stepsperframe;i++){
  Update(grid,1/kT);
  }
     
@@ -246,7 +254,9 @@ function run(){
  var elapsedTime = (newtime - startTime) / 1000;// time in seconds
  startTime=newtime
  $('stepmeter').innerHTML = Number(stepsperframe/elapsedTime).toFixed(0);
- window.requestAnimationFrame(run);
+ if (on){
+     window.requestAnimationFrame(run);
+ }
 }
 
 INDX=0
