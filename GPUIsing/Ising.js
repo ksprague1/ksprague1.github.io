@@ -66,7 +66,7 @@ const Propose = gpu.createKernel(function(grid,JB,parity,size) {
     let j=this.thread.x
     let s=grid[i][j];
     //This updates grid cells at least a little bit stochastically, the choice of 0.7 is arbitrary
-    if ((i+j)%2==parity && Math.random()<0.7){
+    if ((i+j)%2==parity && Math.random()<0.5){
         //getting the energy
         let sum=0;
         if (i == 0) sum += grid[size-1][j]; else sum += grid[i-1][j];
@@ -136,7 +136,7 @@ function setpixels(ctx,grid){
 }
 
 const $ = q => document.getElementById(q);
-var kT = 1.0
+var kT = 2.269
 var mew = 0.0;
 var toggle=false;
 var kval1=100;
@@ -169,7 +169,8 @@ $("mew").oninput = function() {
     
 
 $("kT").oninput = function() {
-  kT = Math.exp(this.value/20);
+  x = Math.pow((this.value/32),3)+0.8194
+  kT = Math.exp(x);
   $('kTtext').innerHTML = kT.toFixed(3);
   //console.log(kT);
 }
