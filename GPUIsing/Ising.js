@@ -76,7 +76,7 @@ const Propose = gpu.createKernel(function(grid,JB,parity,size) {
         let delta = 2.0 * (grid[i][j]*2-1)*(2*sum-4) ;
         //update rule for MCMC
         //I have very little trust in the GPU Math.random function
-        if(delta < 0 || Math.random()<Math.exp(-JB*delta)){
+        if(delta < 0 || 1-Math.random()<Math.exp(-JB*delta)){
         s=1-grid[i][j];
         }
     }
