@@ -121,16 +121,19 @@ total[j]=total[j]/1000
 console.log(total)
 console.log(U(total))
 
-const SIZE=64;
-const gpuprop = gpu.createKernel(function(grid,kT,Jd,Ju,u,parity,size,NumSpecies,PREFILLED) {
+let height=64;
+let width=64;
+
+
+function Proposal(grid,kT,Jd,Ju,u,parity,h,w,NumSpecies,PREFILLED) {
     let i=this.thread.y
     let j=this.thread.x
     let s=grid[i][j];
-    let Q=NumSpecies-size*PREFILLED
+    let Q=NumSpecies-w*PREFILLED
     //This updates grid cells at least a little bit stochastically, the choice of 0.7 is arbitrary
     if ((i+j)%2==parity && Math.random()<0.7 && i >= PREFILLED){
         //MCMC Update
-        let val = grid[i][j]==0? size*PREFILLED+1+Math.floor(Math.random() * Q):grid[i][j];
+        let val = grid[i][j]==0? w*PREFILLED+1+Math.floor(Math.random() * Q):grid[i][j];
         let delta=0;
         let A=0.0;
         let good=0;
@@ -143,28 +146,28 @@ const gpuprop = gpu.createKernel(function(grid,kT,Jd,Ju,u,parity,size,NumSpecies
         //no periodic boundaries for vertical direction which is actually x
         if(i>0 && grid[i-1][j]!=0){
             //given i*w+j+1 find (i-1)*w+j+1 ===  i*w+j+1 - w
-            goodval=val-size
+            goodval=val-w
             if (goodval==grid[i-1][j]){
                 good++;
             }
             else{bad++;}
         }
-        if(i<size-1 && grid[i+1][j]!=0){
+        if(i<h-1 && grid[i+1][j]!=0){
             //given i*w+j+1 find (i-1)*w+j+1 ===  i*w+j+1 - w
-            goodval=val+size
+            goodval=val+w
             if (goodval==grid[i+1][j]){
                 good++;
             }
             else{bad++;}
         }
-        let jplus=j+1<size?j+1:0
-        let jminus=j-1>=0?j-1:size-1
+        let jplus=j+1<w?j+1:0
+        let jminus=j-1>=0?j-1:w-1
         let jp1=0;
         if(grid[i][jminus]!=0){
             //given i*w+j+1 find i*w+(j-1)%sy+1
-            jp1=val%size;
+            jp1=val%w;
             goodval=val-1;
-            if (jp1==1){goodval+=size}
+            if (jp1==1){goodval+=w}
             if (goodval==grid[i][jminus]){
                 good++;
             }
@@ -172,9 +175,9 @@ const gpuprop = gpu.createKernel(function(grid,kT,Jd,Ju,u,parity,size,NumSpecies
         }
         if(grid[i][jplus]!=0){
             //given i*w+j+1 find i*w+(j+1)%sy+1
-            jp1=val%size;
+            jp1=val%w;
             goodval=val+1;
-            if (jp1==0){goodval-=size}
+            if (jp1==0){goodval-=w}
             if (goodval==grid[i][jplus]){
                 good++;
             }
@@ -190,6 +193,7 @@ const gpuprop = gpu.createKernel(function(grid,kT,Jd,Ju,u,parity,size,NumSpecies
         A=1/Q;
         particle = 0;
         }
+        //math.random sucks in this gpu library
         let n = 1-(Math.random()+0.8489598556898322)%1  
         if (n<A*Math.exp(-delta/kT)){
             s=particle;
@@ -197,87 +201,29 @@ const gpuprop = gpu.createKernel(function(grid,kT,Jd,Ju,u,parity,size,NumSpecies
     }
 
     return s;
-}, {
-        output: [SIZE, SIZE],
+}
+
+let gpuprop = gpu.createKernel(
+    Proposal
+    , {
+        output: [width, height],
         pipeline: true,
         immutable: true
     });
 
+class Dummy{
+constructor() {
+    this.thread=this;
+    this.prop=Proposal;
+  }
+}
+let dummy = new Dummy()
 
-
-function cpuprop(grid,kT,Jd,Ju,u,parity,size,NumSpecies,PREFILLED) {
-    for(var i=0;i<size;i++){for(var j=0;j<size;j++){
-    let s=grid[i][j];
-    let Q=NumSpecies-size*PREFILLED
-    //This updates grid cells at least a little bit stochastically, the choice of 0.7 is arbitrary
-    if ((i+j)%2==parity && Math.random()<0.7 && i >= PREFILLED){
-        //MCMC Update
-        let val = grid[i][j]==0? size*PREFILLED+1+Math.floor(Math.random() * Q):grid[i][j];
-        let delta=0;
-        let A=0.0;
-        let good=0;
-        let bad=0;
-        let goodval = 0;
-        let particle=-1;
-        //get ready for a ton of if statements because this will be done by each case
-        //value format is i*w+j+1
-        //w=sy
-        //no periodic boundaries for vertical direction which is actually x
-        if(i>0 && grid[i-1][j]!=0){
-            //given i*w+j+1 find (i-1)*w+j+1 ===  i*w+j+1 - w
-            goodval=val-size
-            if (goodval==grid[i-1][j]){
-                good++;
-            }
-            else{bad++;}
-        }
-        if(i<size-1 && grid[i+1][j]!=0){
-            //given i*w+j+1 find (i-1)*w+j+1 ===  i*w+j+1 - w
-            goodval=val+size
-            if (goodval==grid[i+1][j]){
-                good++;
-            }
-            else{bad++;}
-        }
-        let jplus=j+1<size?j+1:0
-        let jminus=j-1>=0?j-1:size-1
-        let jp1=0;
-        if(grid[i][jminus]!=0){
-            //given i*w+j+1 find i*w+(j-1)%sy+1
-            jp1=val%size;
-            goodval=val-1;
-            if (jp1==1){goodval+=size}
-            if (goodval==grid[i][jminus]){
-                good++;
-            }
-            else{bad++;}
-        }
-        if(grid[i][jplus]!=0){
-            //given i*w+j+1 find i*w+(j+1)%sy+1
-            jp1=val%size;
-            goodval=val+1;
-            if (jp1==0){goodval-=size}
-            if (goodval==grid[i][jplus]){
-                good++;
-            }
-            else{bad++;}
-        }
-        if (grid[i][j]==0){
-        particle=val;
-        delta=u-Jd*good-Ju*bad
-        A=Q;
-        }
-        else{
-        delta=-u+Jd*good+Ju*bad
-        A=1/Q;
-        particle = 0;
-        }
-        
-        if (1-Math.random()<A*Math.exp(-delta/kT)){
-            s=particle;
-        }
-    }
-
+function cpuprop(grid,kT,Jd,Ju,u,parity,h,w,NumSpecies,PREFILLED) {
+    for(var i=0;i<h;i++){for(var j=0;j<w;j++){
+    dummy.y=i;
+    dummy.x=j;
+    s = dummy.prop(grid,kT,Jd,Ju,u,parity,h,w,NumSpecies,PREFILLED)
     grid[i][j] = s;
     }}
     return grid;
@@ -317,7 +263,7 @@ function setpixels(ctx,grid){
 const $ = q => document.getElementById(q);
 const GRAND_CANONICAL_PROB=0.4
 const PREFILLED=1;
-const MAXDIMX=48;
+const MAXDIMX=64;
 var kT = 1.0
 var mew = 0.0;
 var toggle=false;
@@ -373,14 +319,15 @@ function setimg(event) {
     var img = new Image();
     img.src = event.target.result;
     img.onload = function(){
-        w=SIZE;
-        h=SIZE;
-        /*w=img.width;
-        h=img.height
+        w=Math.ceil(img.width/2)*2;
+        h=Math.ceil(img.height/2)*2;
         if (w>MAXDIMX){   
-            h = Math.floor(h*MAXDIMX/w);
+            h = Math.floor(h*MAXDIMX/w/2)*2;
             w=MAXDIMX;
-        }*/
+        }
+        height=h;
+        width=w;
+        update_kernels();
         scale=Math.floor(512/w);
         canvas.width=w*scale;
         canvas.height=h*scale;
@@ -416,25 +363,43 @@ document.onpaste = function(pasteEvent) {
 }
 
 const J=2
-const getval = gpu.createKernel(function(a) {
+let getval = gpu.createKernel(function(a) {
 return a[this.thread.y][this.thread.x];
-}).setOutput([SIZE, SIZE])
+}).setOutput([width, height])
+
+function update_kernels(){
+    getval.destroy();
+    gpuprop.destroy();
+    getval = gpu.createKernel(function(a) {
+        return a[this.thread.y][this.thread.x];
+    }).setOutput([width, height])
+    prop = gpuprop = gpu.createKernel(
+        Proposal
+        , {
+            output: [width, height],
+            pipeline: true,
+            immutable: true
+        });
+    prop = gpuprop;
+}
+
+let prop=gpuprop;
 function run(){
     n = Math.random()<=0.5?0:1
-    grid2 = gpuprop(grid,kT,J,0,mew,n,SIZE,NumSpecies,PREFILLED)
+    grid2 = prop(grid,kT,J,0,mew,n,height,width,NumSpecies,PREFILLED)
     n = Math.random()<=0.5?0:1
-    grid = gpuprop(grid2,kT,J,0,mew,1-n,SIZE,NumSpecies,PREFILLED)
+    grid = prop(grid2,kT,J,0,mew,1-n,height,width,NumSpecies,PREFILLED)
     grid2.delete()
     for (var i=0;i<stepsperframe-1;i++){
         n = Math.random()<=0.5?0:1
-        grid2 = gpuprop(grid,kT,J,0,mew,n,SIZE,NumSpecies,PREFILLED)
+        grid2 = prop(grid,kT,J,0,mew,n,height,width,NumSpecies,PREFILLED)
         grid.delete()
         n = Math.random()<=0.5?0:1
-        grid = gpuprop(grid2,kT,J,0,mew,1-n,SIZE,NumSpecies,PREFILLED)
+        grid = prop(grid2,kT,J,0,mew,1-n,height,width,NumSpecies,PREFILLED)
         grid2.delete()
     }
     n = Math.random()<=0.5?0:1
-    grid2 = gpuprop(grid,kT,J,0,mew,n,SIZE,NumSpecies,PREFILLED)
+    grid2 = prop(grid,kT,J,0,mew,n,height,width,NumSpecies,PREFILLED)
     grid.delete()
     grid = getval(grid2);
     grid2.delete()
@@ -450,7 +415,7 @@ function run(){
 }
 
 INDX=0
-grid = zeros([SIZE,SIZE]);
+grid = zeros([height,width]);
 stepsperframe=Math.pow(4,-1)*2;
 $('stepstext').innerHTML = "1/"+Math.pow(4,1);
 var RGBData;
