@@ -355,47 +355,61 @@ $("kT").oninput = function() {
   $('kTtext').innerHTML = kT.toFixed(3);
   //console.log(kT);
 }
+
+var coll = document.getElementsByClassName("Default Images");
+var i;
+function test(){
+    this.target=this;
+    this.result=this.src;
+    setimg(this);
+}
+for (i = 0; i < coll.length; i++) {
+  coll[i].addEventListener("click",test)
+}
+
+
+function setimg(event) {
+    //img = $("imcontainer");
+    var img = new Image();
+    img.src = event.target.result;
+    img.onload = function(){
+        w=SIZE;
+        h=SIZE;
+        /*w=img.width;
+        h=img.height
+        if (w>MAXDIMX){   
+            h = Math.floor(h*MAXDIMX/w);
+            w=MAXDIMX;
+        }*/
+        scale=Math.floor(512/w);
+        canvas.width=w*scale;
+        canvas.height=h*scale;
+        ctx.drawImage(img, 0, 0,w,h);
+        grid = zeros([h,w]);
+        var imgData = ctx.getImageData(0, 0, w, h);
+        RGBData = imgData.data; 
+        NumSpecies=h*w;
+        console.log("sx:"+grid.length +" sy:"+grid[0].length)
+        //fill in some starting positions
+        //by setting bounds for i and j you specify the particles already in the right place
+        for (var i=0;i<PREFILLED;i++){
+            for (var j=0;j<w;j++){
+                grid[i][j]=i*w+j+1;
+            }
+        }
+        setpixels(ctx,grid)
+    }
+
+}
 document.onpaste = function(pasteEvent) {
     // consider the first item (can be easily extended for multiple items)
     var item = pasteEvent.clipboardData.items[0];
-    var img = new Image();
     if (item.type.indexOf("image") === 0)
     {
         var blob = item.getAsFile();
  
         var reader = new FileReader();
-        reader.onload = function(event) {
-            //img = $("imcontainer");
-            img.src = event.target.result;
-            img.onload = function(){
-                w=SIZE;
-                h=SIZE;
-                /*w=img.width;
-                h=img.height
-                if (w>MAXDIMX){   
-                    h = Math.floor(h*MAXDIMX/w);
-                    w=MAXDIMX;
-                }*/
-                scale=Math.floor(512/w);
-                canvas.width=w*scale;
-                canvas.height=h*scale;
-                ctx.drawImage(img, 0, 0,w,h);
-                grid = zeros([h,w]);
-                var imgData = ctx.getImageData(0, 0, w, h);
-                RGBData = imgData.data; 
-                NumSpecies=h*w;
-                console.log("sx:"+grid.length +" sy:"+grid[0].length)
-                //fill in some starting positions
-                //by setting bounds for i and j you specify the particles already in the right place
-                for (var i=0;i<PREFILLED;i++){
-                    for (var j=0;j<w;j++){
-                        grid[i][j]=i*w+j+1;
-                    }
-                }
-                setpixels(ctx,grid)
-            }
-
-        };
+        reader.onload = setimg;
  
         reader.readAsDataURL(blob);
     }

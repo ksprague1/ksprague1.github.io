@@ -61,7 +61,7 @@ console.log(add(m1,m2));
 console.log(mytest(m1,1,0));
 console.log(mytest(m1,5,1));
 const SIZE = 512;
-const Propose = gpu.createKernel(function(grid,JB,parity,size) {
+const Propose = gpu.createKernel(function(grid,JB,mew,parity,size) {
     let i=this.thread.y
     let j=this.thread.x
     let s=grid[i][j];
@@ -73,7 +73,7 @@ const Propose = gpu.createKernel(function(grid,JB,parity,size) {
         if (i == size-1) sum += grid[0][j]; else sum += grid[i+1][j];
         if (j == 0) sum += grid[i][size-1]; else sum += grid[i][j-1];
         if (j == size-1) sum += grid[i][0]; else sum += grid[i][j+1];
-        let delta = 2.0 * (grid[i][j]*2-1)*(2*sum-4) ;
+        let delta = 2.0 * (grid[i][j]*2-1)*(2*sum-4+mew) ;
         //update rule for MCMC
         //I have very little trust in the GPU Math.random function
         if(delta < 0 || 1-Math.random()<Math.exp(-JB*delta)){
@@ -163,8 +163,8 @@ $('stopbutton').addEventListener("click", function(){
 })
 
 $("mew").oninput = function() {
-  mew = this.value/5.0;
-  $('mewtext').innerHTML = mew.toFixed(3);
+  mew = Math.pow(this.value,3)/25000.0;
+  $('mewtext').innerHTML = mew.toFixed(5);
 }
     
 
@@ -178,18 +178,18 @@ $("kT").oninput = function() {
 
 function run(){
     n = Math.random()<=0.5?0:1
-    grid2 = Propose(grid,1/kT,n,SIZE)
-    grid = Propose(grid2,1/kT,1-n,SIZE)
+    grid2 = Propose(grid,1/kT,mew,n,SIZE)
+    grid = Propose(grid2,1/kT,mew,1-n,SIZE)
     grid2.delete()
     for (var i=0;i<stepsperframe-1;i++){
         n = Math.random()<=0.5?0:1
-        grid2 = Propose(grid,1/kT,n,SIZE)
+        grid2 = Propose(grid,1/kT,mew,n,SIZE)
         grid.delete()
-        grid = Propose(grid2,1/kT,1-n,SIZE)
+        grid = Propose(grid2,1/kT,mew,1-n,SIZE)
         grid2.delete()
     }
     n = Math.random()<=0.5?0:1
-    grid2 = Propose(grid,1/kT,n,SIZE)
+    grid2 = Propose(grid,1/kT,mew,n,SIZE)
     grid.delete()
     grid = getval(grid2);
     grid2.delete()
