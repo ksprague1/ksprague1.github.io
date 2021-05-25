@@ -25,54 +25,26 @@ function random_ones(dim,arr,N){
 }
 
 const gpu = new GPU();
-const multiplyMatrix = gpu.createKernel(function(a, b) {
-let sum = 0;
-for (let i = 0; i < 8; i++) {
-  sum += a[this.thread.y][i] * b[i][this.thread.x];
-}
-return sum;
-}).setOutput([8, 8])
 
-const add = gpu.createKernel(function(a, b) {
-let s=a[this.thread.y][this.thread.x]+b[this.thread.y][this.thread.x];
-return s;
-}).setOutput([8, 8])
-
-const mytest = gpu.createKernel(function(grid,J,parity) {
-let s=0
-if ((this.thread.x+this.thread.y)%2==parity){
-s=J;
-}
-return s;
-}).setOutput([8, 8])
-
-
-console.log(1e-100)
-m1 = zeros([8,8]);
-m2 = zeros([8,8]);
-random_ones([8,8],m1,8)
-random_ones([8,8],m2,8)
-out = multiplyMatrix(m1, m2)
-console.log(sum(out)+"worked!")
-console.log(m1);
-console.log(m2);
-console.log(m1);
-console.log(add(m1,m2));
-console.log(mytest(m1,1,0));
-console.log(mytest(m1,5,1));
 const SIZE = 512;
+
+//gpu bound ising proposal using a checkorboard update rule since no neighbours lie on the
+//same checkerboard
 const Propose = gpu.createKernel(function(grid,JB,mew,parity,size) {
     let i=this.thread.y
     let j=this.thread.x
     let s=grid[i][j];
-    //This updates grid cells at least a little bit stochastically, the choice of 0.7 is arbitrary
+    //This updates grid cells at least a little bit stochastically, the choice of 0.5 is arbitrary
+    //Note: if this is set to 1 you will get weirdness, probably due to the sketchy math.random function
     if ((i+j)%2==parity && Math.random()<0.5){
         //getting the energy
         let sum=0;
-        if (i == 0) sum += grid[size-1][j]; else sum += grid[i-1][j];
-        if (i == size-1) sum += grid[0][j]; else sum += grid[i+1][j];
-        if (j == 0) sum += grid[i][size-1]; else sum += grid[i][j-1];
-        if (j == size-1) sum += grid[i][0]; else sum += grid[i][j+1];
+        //this gives a count of all neighbours with spin up
+        sum+= (i == 0)?      grid[size-1][j]:grid[i-1][j];
+        sum+= (i == size-1)? grid[0][j]     :grid[i+1][j];
+        sum+= (j == 0)?      grid[i][size-1]:grid[i][j-1];
+        sum+= (j == size-1)? grid[i][0]     :grid[i][j+1];
+
         let delta = 2.0 * (grid[i][j]*2-1)*(2*sum-4+mew) ;
         //update rule for MCMC
         //I have very little trust in the GPU Math.random function
@@ -91,26 +63,6 @@ const Propose = gpu.createKernel(function(grid,JB,mew,parity,size) {
 const getval = gpu.createKernel(function(a) {
 return a[this.thread.y][this.thread.x];
 }).setOutput([SIZE, SIZE])
-//console.log(Propose(m1,1,0,SIZE));
-
-
-function sum(arr){
- sx=arr.length;
- sy=arr[0].length;
- s=0
- for (var i=0;i<sx;i++){
-     for(var j=0;j<sy;j++){
-      s+=arr[i][j]   
-     }
- }
- return s
-}
-
-function Update(){
-    n = Math.random()<=0.5?0:1
-    grid=Propose(grid,1/kT,n,SIZE)
-    grid=Propose(grid,1/kT,1-n,SIZE)
-}
 
 
 
@@ -134,6 +86,7 @@ function setpixels(ctx,grid){
     }
     ctx.putImageData(imgData, 0, 0);
 }
+
 
 const $ = q => document.getElementById(q);
 var kT = 2.269
@@ -206,7 +159,7 @@ function run(){
 
 INDX=0
 grid = zeros([SIZE,SIZE]);
-random_ones([SIZE,SIZE],grid,SIZE*SIZE*2/3)
+random_ones([SIZE,SIZE],grid,SIZE*SIZE*1/2)
 stepsperframe=Math.pow(2,-1)*2;
 $('stepstext').innerHTML = "1/"+Math.pow(4,1);
 var RGBData;

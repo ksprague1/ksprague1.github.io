@@ -14,33 +14,12 @@ function zeros(dimensions) {
     return array;
 }
 
-function random_ones(dim,arr,N){
- for(var i=0;i<N;){ 
-    x=Math.floor(Math.random() * dim[0]);
-    y=Math.floor(Math.random() * dim[1]);
-    if (grid[x][y]==0){
-        grid[x][y]=1
-        i++;
-    }
- }
-}
 
-function sum(arr){
- sx=arr.length;
- sy=arr[0].length;
- s=0
- for (var i=0;i<sx;i++){
-     for(var j=0;j<sy;j++){
-      s+=arr[i][j]   
-     }
- }
- return s
-}
+/* Some stuff I did to confirm the GPU Math.random() is kind of trash
 
 const random_arr = gpu.createKernel(function(offset){
 return 1-(Math.random()+offset)%1                                   
 }).setOutput([1000, 1000])
-
 
 
 const bins = gpu.createKernel(function(grid,L){
@@ -121,10 +100,12 @@ total[j]=total[j]/1000
 console.log(total)
 console.log(U(total))
 
+*/
+
 let height=64;
 let width=64;
 
-
+//Proposal function with constant bond energy between correct relative pixel placements and incorrect placements
 function Proposal(grid,kT,Jd,Ju,u,parity,h,w,NumSpecies,PREFILLED) {
     let i=this.thread.y
     let j=this.thread.x
@@ -134,16 +115,21 @@ function Proposal(grid,kT,Jd,Ju,u,parity,h,w,NumSpecies,PREFILLED) {
     if ((i+j)%2==parity && Math.random()<0.7 && i >= PREFILLED){
         //MCMC Update
         let val = grid[i][j]==0? w*PREFILLED+1+Math.floor(Math.random() * Q):grid[i][j];
+        //delta gives the energy difference between the forward and reverse move
         let delta=0;
+        //A will be P(backward)/P(forward) for the move
         let A=0.0;
+        //good will be the number of correct bonds
         let good=0;
+        //bad will be the number of incorrect bonds
         let bad=0;
+        //in each case goodval is the pixel value for the correct neighbor
         let goodval = 0;
         let particle=-1;
         //get ready for a ton of if statements because this will be done by each case
         //value format is i*w+j+1
-        //w=sy
-        //no periodic boundaries for vertical direction which is actually x
+        //no periodic boundaries for vertical (i) direction
+        //neighbour above
         if(i>0 && grid[i-1][j]!=0){
             //given i*w+j+1 find (i-1)*w+j+1 ===  i*w+j+1 - w
             goodval=val-w
@@ -152,6 +138,7 @@ function Proposal(grid,kT,Jd,Ju,u,parity,h,w,NumSpecies,PREFILLED) {
             }
             else{bad++;}
         }
+        //neighbour below
         if(i<h-1 && grid[i+1][j]!=0){
             //given i*w+j+1 find (i-1)*w+j+1 ===  i*w+j+1 - w
             goodval=val+w
@@ -162,10 +149,11 @@ function Proposal(grid,kT,Jd,Ju,u,parity,h,w,NumSpecies,PREFILLED) {
         }
         let jplus=j+1<w?j+1:0
         let jminus=j-1>=0?j-1:w-1
-        let jp1=0;
+        //with val=i*w+j+1 for pixel coordinates i,j. Then jp1 = j+1 in these pixel coordinates
+        let jp1=val%w;;
+        //neighbour to the left
         if(grid[i][jminus]!=0){
             //given i*w+j+1 find i*w+(j-1)%sy+1
-            jp1=val%w;
             goodval=val-1;
             if (jp1==1){goodval+=w}
             if (goodval==grid[i][jminus]){
@@ -173,9 +161,9 @@ function Proposal(grid,kT,Jd,Ju,u,parity,h,w,NumSpecies,PREFILLED) {
             }
             else{bad++;}
         }
+        //neighbour to the right
         if(grid[i][jplus]!=0){
             //given i*w+j+1 find i*w+(j+1)%sy+1
-            jp1=val%w;
             goodval=val+1;
             if (jp1==0){goodval-=w}
             if (goodval==grid[i][jplus]){
@@ -183,11 +171,13 @@ function Proposal(grid,kT,Jd,Ju,u,parity,h,w,NumSpecies,PREFILLED) {
             }
             else{bad++;}
         }
+        //Addition of a particle
         if (grid[i][j]==0){
         particle=val;
         delta=u-Jd*good-Ju*bad
         A=Q;
         }
+        //removal of a particle
         else{
         delta=-u+Jd*good+Ju*bad
         A=1/Q;
@@ -203,14 +193,8 @@ function Proposal(grid,kT,Jd,Ju,u,parity,h,w,NumSpecies,PREFILLED) {
     return s;
 }
 
-let gpuprop = gpu.createKernel(
-    Proposal
-    , {
-        output: [width, height],
-        pipeline: true,
-        immutable: true
-    });
 
+//Kind ofhacky thing to reuse the gpu code on the cpu
 class Dummy{
 constructor() {
     this.thread=this;
@@ -218,7 +202,7 @@ constructor() {
   }
 }
 let dummy = new Dummy()
-
+//runs the proposal on the cpu with a decent math.random
 function cpuprop(grid,kT,Jd,Ju,u,parity,h,w,NumSpecies,PREFILLED) {
     for(var i=0;i<h;i++){for(var j=0;j<w;j++){
     dummy.y=i;
@@ -228,9 +212,37 @@ function cpuprop(grid,kT,Jd,Ju,u,parity,h,w,NumSpecies,PREFILLED) {
     }}
     return grid;
 }
+//runs the proposal quickly on the gpu but with a trash math.random
+let gpuprop = gpu.createKernel(
+    Proposal
+    , {
+        output: [width, height],
+        pipeline: true,
+        immutable: true
+    });
+//I use this to go from a pipelined texture back to a 2d array
+let getval = gpu.createKernel(function(a) {
+return a[this.thread.y][this.thread.x];
+}).setOutput([width, height])
 
+//Need to update the gpu kernels each time there is a change in grid size
+function update_kernels(){
+    getval.destroy();
+    gpuprop.destroy();
+    getval = gpu.createKernel(function(a) {
+        return a[this.thread.y][this.thread.x];
+    }).setOutput([width, height])
+    prop = gpuprop = gpu.createKernel(
+        Proposal
+        , {
+            output: [width, height],
+            pipeline: true,
+            immutable: true
+        });
+    prop = gpuprop;
+}
 
-
+//For updating the canvas
 function setpixels(ctx,grid){
     var h = ctx.canvas.height;
     var w = ctx.canvas.width;
@@ -244,6 +256,7 @@ function setpixels(ctx,grid){
         y=Math.floor(((s/4)%w)/scale)
         //s = 4 * x * w + 4 * y    probably
         if (grid[x][y]>0){
+        //using the particle value to find it's colour using the RGB data from the original image
         s2=(grid[x][y]-1)*4;
         data[s] = RGBData[s2];
         data[s + 1] = RGBData[s2+1];
@@ -251,6 +264,7 @@ function setpixels(ctx,grid){
         data[s + 3] = RGBData[s2+3];  // fully opaque
         }
         else{
+        //value of zero means no particle so it's set to black
         data[s] = 0
         data[s + 1] = 0
         data[s + 2] = 0
@@ -260,10 +274,13 @@ function setpixels(ctx,grid){
     ctx.putImageData(imgData, 0, 0);
 }
 
+
+//constants and slider things
 const $ = q => document.getElementById(q);
 const GRAND_CANONICAL_PROB=0.4
 const PREFILLED=1;
 const MAXDIMX=64;
+const J=2
 var kT = 1.0
 var mew = 0.0;
 var toggle=false;
@@ -314,6 +331,8 @@ for (i = 0; i < coll.length; i++) {
 }
 
 
+//Importing images from the image select or the clipboard
+
 function setimg(event) {
     //img = $("imcontainer");
     var img = new Image();
@@ -362,26 +381,7 @@ document.onpaste = function(pasteEvent) {
     }
 }
 
-const J=2
-let getval = gpu.createKernel(function(a) {
-return a[this.thread.y][this.thread.x];
-}).setOutput([width, height])
 
-function update_kernels(){
-    getval.destroy();
-    gpuprop.destroy();
-    getval = gpu.createKernel(function(a) {
-        return a[this.thread.y][this.thread.x];
-    }).setOutput([width, height])
-    prop = gpuprop = gpu.createKernel(
-        Proposal
-        , {
-            output: [width, height],
-            pipeline: true,
-            immutable: true
-        });
-    prop = gpuprop;
-}
 
 let prop=gpuprop;
 function run(){
@@ -389,6 +389,8 @@ function run(){
     grid2 = prop(grid,kT,J,0,mew,n,height,width,NumSpecies,PREFILLED)
     n = Math.random()<=0.5?0:1
     grid = prop(grid2,kT,J,0,mew,1-n,height,width,NumSpecies,PREFILLED)
+    //Only need to call grid.delete when running on the gpu, it's used to free texture memory
+    //because each gpu update actually makes a new texture
     grid2.delete()
     for (var i=0;i<stepsperframe-1;i++){
         n = Math.random()<=0.5?0:1
@@ -403,7 +405,6 @@ function run(){
     grid.delete()
     grid = getval(grid2);
     grid2.delete()
-    //if (Math.random()<0.01){console.log(sum(grid))}
     setpixels(ctx,grid);
     var newtime=(new Date()).getTime()
     var elapsedTime = (newtime - startTime) / 1000;// time in seconds

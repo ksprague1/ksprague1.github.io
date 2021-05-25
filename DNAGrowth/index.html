@@ -55,6 +55,7 @@
             
             .slidecontainer {
               width: 512px;
+              margin: auto;
             }
 
             .slider {
@@ -140,8 +141,8 @@
                 <a href="/Clustering">Clustering</a>
                 <a class="active" href="/DNAGrowth">DNAGrowth</a>
             </div>
-            <canvas id="grid" width=512 height=512></canvas>
             <div class="slidecontainer">
+                <canvas id="grid" width=512 height=512></canvas>
                 Temperature: <span id="kTtext">1.000</span><br>
                 <input type="range" min="-50" max="50" value="0" class="slider" id="kT">
                 Chemical Potential: <span id="mewtext">0.000</span><br>
@@ -152,7 +153,7 @@
                 <br>Click on an image below and press Start to begin growth of said image. You can grow custom images by copying 
                 them to your clipboard and pressing Ctrl+V on this site.
             </div>
-            <div >
+            <div class="slidecontainer">
                 <img src="bees2.png" alt="Some Bees" class="Default Images">
                 <img src="Snake2.png" alt="A Snake" class="Default Images">
                 <img src="Snake.png" alt="A Small Snake" class="Default Images">
