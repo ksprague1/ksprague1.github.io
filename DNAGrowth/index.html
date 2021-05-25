@@ -1,7 +1,6 @@
 <html>
     <head>
         <meta charset="utf-8">
-        <canvas id="grid" width=512 height=512></canvas>
         <style>
             body {
               margin: 0;
@@ -135,32 +134,33 @@
             
             
             </style>  
-          <div class="topnav">
-              <a href="#home">Home</a>
-              <a href="GPUIsing">Ising</a>
-              <a href="Clustering">Clustering</a>
-              <a class="active" href="DNAGrowth">DNAGrowth</a>
+            <canvas id="grid" width=512 height=512></canvas>
+            <div class="topnav">
+                <a href="#home">Home</a>
+                <a href="GPUIsing">Ising</a>
+                <a href="Clustering">Clustering</a>
+                <a class="active" href="DNAGrowth">DNAGrowth</a>
             </div>
-          <div class="slidecontainer">
-          Temperature: <span id="kTtext">1.000</span><br>
-          <input type="range" min="-50" max="50" value="0" class="slider" id="kT">
-          Chemical Potential: <span id="mewtext">0.000</span><br>
-          <input type="range" min="-50" max="50" value="0" class="slider" id="mew">
-          Cell Updates Per Frame: <span id="stepstext">10 x</span>      (<span id="stepmeter">0</span>)<br>
-          <input type="range" min="-1" max="8" value="-1" class="slider" id="steps">
-          <button type="button" id = "stopbutton"><span id="stoptext">Start</span></button>
-          <br>Click on an image below and press Start to begin growth of said image. You can grow custom images by copying 
-          them to your clipboard and pressing Ctrl+V on this site.
-          </div>
-          <div >
-          <img src="bees2.png" alt="Some Bees" class="Default Images">
-          <img src="Snake2.png" alt="A Snake" class="Default Images">
-          <img src="Snake.png" alt="A Small Snake" class="Default Images">
-          <img src="Mario.png" alt="A Small Snake" class="Default Images">
-          <img src="Mario2.png" alt="A Small Snake" class="Default Images">
-          <img src="Jumpman.png" alt="A Small Snake" class="Default Images">
-          <img src="Sanic.png" alt="A Small Snake" class="Default Images">
-          </div>
+            <div class="slidecontainer">
+                Temperature: <span id="kTtext">1.000</span><br>
+                <input type="range" min="-50" max="50" value="0" class="slider" id="kT">
+                Chemical Potential: <span id="mewtext">0.000</span><br>
+                <input type="range" min="-50" max="50" value="0" class="slider" id="mew">
+                Cell Updates Per Frame: <span id="stepstext">10 x</span>      (<span id="stepmeter">0</span>)<br>
+                <input type="range" min="-1" max="8" value="-1" class="slider" id="steps">
+                <button type="button" id = "stopbutton"><span id="stoptext">Start</span></button>
+                <br>Click on an image below and press Start to begin growth of said image. You can grow custom images by copying 
+                them to your clipboard and pressing Ctrl+V on this site.
+            </div>
+            <div >
+                <img src="bees2.png" alt="Some Bees" class="Default Images">
+                <img src="Snake2.png" alt="A Snake" class="Default Images">
+                <img src="Snake.png" alt="A Small Snake" class="Default Images">
+                <img src="Mario.png" alt="A Small Snake" class="Default Images">
+                <img src="Mario2.png" alt="A Small Snake" class="Default Images">
+                <img src="Jumpman.png" alt="A Small Snake" class="Default Images">
+                <img src="Sanic.png" alt="A Small Snake" class="Default Images">
+            </div>
         
    
         
