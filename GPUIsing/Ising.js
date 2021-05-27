@@ -80,7 +80,7 @@ function setpixels(ctx,grid){
         y=Math.floor(((s/4)%w)/scale)
         //s = 4 * x * w + 4 * y    probably
         data[s] = grid[x][y]*255;
-        data[s + 1] = 0;//grid[x][y]*255;
+        data[s + 1] = grid[x][y]*255;//0;
         data[s + 2] = grid[x][y]*255;
         data[s + 3] = 255;  // fully opaque
     }
