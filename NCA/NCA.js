@@ -18,7 +18,7 @@ model.fit(xs, ys, {epochs: 10}).then(() => {
 console.log(tf.layers.depthwiseConv2d)
 //tests done
 
-window.GRAPH_URL = "8000.json";//= URL.createObjectURL(new File([""], "8000.json"))
+window.GRAPH_URL = "model.json";//= URL.createObjectURL(new File([""], "8000.json"))
 //code from distill.pub google colab demo
 const sleep = (ms)=>new Promise(resolve => setTimeout(resolve, ms));
   
