@@ -17,6 +17,7 @@ model.fit(xs, ys, {epochs: 10}).then(() => {
 
 console.log(tf.layers.depthwiseConv2d)
 //tests done
+console.log(true&false?'yes':'no');
 
 window.GRAPH_URL = "model.json";//= URL.createObjectURL(new File([""], "8000.json"))
 //code from distill.pub google colab demo
@@ -63,9 +64,9 @@ return consts;
     
     const model = await tf.loadGraphModel(GRAPH_URL);
     Object.assign(model.weights, consts);
-    
-    let seed = new Array(16).fill(0).map((x, i)=>i<3?0:1);
-    seed = tf.tensor(seed, [1, 1, 1, 16]);
+    let mro = [-0.19377667,  0.58245254,  0.41738886, -0.47874993,  1.7339758,  -0.33249077];  
+    let seed = new Array(26).fill(0).map((x, i)=>i>19?mro[i-20]:i<3?0:1);
+    seed = tf.tensor(seed, [1, 1, 1, 26]);
     
     const D = 96;
     const initState = tf.tidy(()=>{
