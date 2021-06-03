@@ -19,7 +19,7 @@ console.log(tf.layers.depthwiseConv2d)
 //tests done
 console.log(true&false?'yes':'no');
 
-window.GRAPH_URL = "model.json";//= URL.createObjectURL(new File([""], "8000.json"))
+window.GRAPH_URL = "model.json";
 //code from distill.pub google colab demo
 const sleep = (ms)=>new Promise(resolve => setTimeout(resolve, ms));
   
@@ -64,7 +64,10 @@ return consts;
     
     const model = await tf.loadGraphModel(GRAPH_URL);
     Object.assign(model.weights, consts);
-    let mro = [-0.19377667,  0.58245254,  0.41738886, -0.47874993,  1.7339758,  -0.33249077];  
+    let mro = [-0.23187873,  0.8748097,   0.21108331, -0.3377599,   1.5307932,  -0.18755093];  
+    let lzrd =  [ 1.6492957,   0.77366227,  1.4322221,   0.5890011,  -0.23485255,  0.38630953]
+    let elephant= [ 0.11262906, -2.482515,    1.6564426,   0.8290265,  -0.04282238,  0.00299857]
+    let whale = [ 1.1224561,  -1.9966718,  -0.7790339,  -0.25473234,  0.45072618,  0.8468036 ]
     let seed = new Array(26).fill(0).map((x, i)=>i>19?mro[i-20]:i<3?0:1);
     seed = tf.tensor(seed, [1, 1, 1, 26]);
     
@@ -88,6 +91,9 @@ return consts;
     }
     
     const plantSeed = (x, y)=>{
+      let choice = [mro,lzrd,elephant,whale][Math.floor(Math.random()*4)]
+      let seed = new Array(26).fill(0).map((x, i)=>i>19?choice[i-20]:i<3?0:1);
+      seed = tf.tensor(seed, [1, 1, 1, 26]);
       const x2 = w-x-seed.shape[2];
       const y2 = h-y-seed.shape[1];
       if (x<0 || x2<0 || y2<0 || y2<0)
