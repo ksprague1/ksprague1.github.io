@@ -159,9 +159,12 @@ const Propose = gpu.createKernel(function(grid,JB,mew,parity,size) {
     //Note: if this is set to 1 you will get weirdness, probably due to the sketchy math.random function
     if ((i+j)%2==parity && Math.random()<0.5){
         //getting the energy
-        
-        //Apparently the gpu has PBC for days
-        let sum=grid[i-1][j]+grid[i+1][j]+grid[i][j-1]+grid[i][j+1]
+        let sum=0;
+        //this gives a count of all neighbours with spin up
+        sum+= (i == 0)?      grid[size-1][j]:grid[i-1][j];
+        sum+= (i == size-1)? grid[0][j]     :grid[i+1][j];
+        sum+= (j == 0)?      grid[i][size-1]:grid[i][j-1];
+        sum+= (j == size-1)? grid[i][0]     :grid[i][j+1];
         let delta = 2.0 * (grid[i][j]*2-1)*(2*sum-4+mew) ;
         //update rule for MCMC
         //I have very little trust in the GPU Math.random function
@@ -294,10 +297,12 @@ function Vmap(ctx,grid){
         y=Math.floor(((s/4)%w)/scale)
         //s = 4 * x * w + 4 * y    probably
         var gij=(grid[x][y]-min)/(max-min)
-        
-        data[s] =     (gij)*255;
-        data[s + 1] = (gij)*(1-gij)*1020;
-        data[s + 2] = (1-gij)*255;
+        let R = gij<0.35?0:gij<0.66? (gij-0.35)/0.31:gij<0.89?1:1-0.5*(gij-0.89)/0.11
+        let G = gij<0.125?0:gij<0.375?(gij-0.125)/0.25:gij<0.64?1:gij<0.91?1-(gij-0.64)/0.27:0
+        let B = gij<0.11?0.5+gij/0.22:gij<0.34?1:gij<0.65?1-(gij-0.34)/0.31:0
+        data[s] =     R*255;
+        data[s + 1] = G*255;
+        data[s + 2] = B*255;
         data[s + 3] = 255;  // fully opaque
     }
     //console.log(data[0]);
@@ -305,14 +310,17 @@ function Vmap(ctx,grid){
     //console.log('hwat?')
 }
 
+const to2D= gpu.createKernel(function(a){return a;},{output: [1,1],pipeline: true,immutable: true})
+const FAKEMAX=to2D(1.12)
 function Erender(ctx,V){
     EX=Ey(V,mutable,H,SIZE)
     EY=Ex(V,mutable,H,SIZE)
     mag=M(EX,EY)
     max=gpumax(mag)
     min=gpumin(mag)
-    Emap(EX,EY,mag,max,min)
+    Emap(EX,EY,mag,FAKEMAX,min)
     ctx.drawImage(Emap.getCanvas(),0,0)
+    //console.log(ret(max))
 }
 
 const Emap = gpu.createKernel(function(Ex,Ey,M,maxarr,minarr) {
@@ -353,10 +361,40 @@ const Emap = gpu.createKernel(function(Ex,Ey,M,maxarr,minarr) {
     }
     else{
         let gij=(M[i][j]-min)/(max-min)
-        this.color(gij,4*gij*(1-gij),1-gij, 1);
+        let R = gij<0.35?0:gij<0.66? (gij-0.35)/0.31:gij<0.89?1:1-0.5*(gij-0.89)/0.11
+        let G = gij<0.125?0:gij<0.375?(gij-0.125)/0.25:gij<0.64?1:gij<0.91?1-(gij-0.64)/0.27:0
+        let B = gij<0.11?0.5+gij/0.22:gij<0.34?1:gij<0.65?1-(gij-0.34)/0.31:0
+        this.color(R,G,B, 1);
     }
     
 }).setOutput([512, 512]).setGraphical(true);
+
+/*
+Maybe I write general cmap code later
+_jet_data = {'red':   ((0.00, 0, 0),
+                       (0.35, 0, 0),
+                       (0.66, 1, 1),
+                       (0.89, 1, 1),
+                       (1.00, 0.5, 0.5)),
+             'green': ((0.000, 0, 0),
+                       (0.125, 0, 0),
+                       (0.375, 1, 1),
+                       (0.640, 1, 1),
+                       (0.910, 0, 0),
+                       (1.000, 0, 0)),
+             'blue':  ((0.00, 0.5, 0.5),
+                       (0.11, 1, 1),
+                       (0.34, 1, 1),
+                       (0.65, 0, 0),
+                       (1.00, 0, 0))}
+
+
+*/
+
+
+
+
+
 
 const $ = q => document.getElementById(q);
 var kT = 2.269
