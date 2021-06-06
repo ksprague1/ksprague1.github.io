@@ -397,7 +397,9 @@ $("kT").oninput = function() {
   $('kTtext').innerHTML = kT.toFixed(3);
   //console.log(kT);
 }
-
+$("PlotV").oninput = function(){
+toggle = !toggle;
+}
 function nextVoltage(steps,eps){
 for (var i=0;i<steps;i++){
     V2= SOR(V,p,eps,mutable,w,H,0,SIZE)
@@ -426,8 +428,10 @@ function run(){
     
     toperm(grid);
     nextVoltage(400,eps);
+    if (!toggle){
     Erender(ctx2,V);
-    //Vmap(ctx2,getval(M(Ex(V,mutable,H,SIZE),Ey(V,mutable,H,SIZE))));
+    }
+    else{Vmap(ctx2,getval(V));}
     
     // getval copies grid2 to the cpu
     setpixels(ctx,getval(grid2));
