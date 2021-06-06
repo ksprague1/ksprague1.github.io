@@ -337,7 +337,7 @@ const Emap = gpu.createKernel(function(Ex,Ey,M,maxarr,minarr) {
     let dx=-(R-4)*(Ex[ri][rj]/max)
     let dy=(R-4)*(Ey[ri][rj]/max)
     let m=(R-4)*(M[ri][rj])/max
-    let inarrow=false;
+    let A=1.0;
     //now we check if it is inside the arrow
     if (m>0){
         let x = i-ri
@@ -345,27 +345,37 @@ const Emap = gpu.createKernel(function(Ex,Ey,M,maxarr,minarr) {
         //arrowhead can be done using inf and 1 norm in rotated coords
         let X = dx*(dy-y)/m - dy*(dx-x)/m
         let Y = dy*(dy-y)/m + dx*(dx-x)/m
-        if (Math.abs(X)+0.5*Math.abs(Y)< 4 &&Math.abs(Y+4)<4){
-            inarrow=true
+        if (Math.abs(X)+0.5*Math.abs(Y)< 3.5 &&Math.abs(Y+3.5)<3.5){
+            A=0;
         }
+        else if (Math.abs(X)+0.5*Math.abs(Y)< 4.5 &&Math.abs(Y+3.5)<3.5){
+            A*=1-(4.5-Math.abs(X)-0.5*Math.abs(Y));
+        }
+        else if (Math.abs(X)+0.5*Math.abs(Y)< 3.5 &&Math.abs(Y+3.5)<4.5){
+            A*=1-(4.5-Math.abs(Y+3.5));
+        }
+        else if (Math.abs(X)+0.5*Math.abs(Y)< 4.5 &&Math.abs(Y+3.5)<4.5){
+            A*=1-(9-Math.abs(Y+3.5)-Math.abs(X)-0.5*Math.abs(Y))/2;
+        }
+        
         //arrow body done by looking at length of orthogonal (to E field) part of pixel vector
         let d=x*dx+y*dy
         X = x-d*dx/m/m
         Y = y-d*dy/m/m
-        if (d>0&&d<m*m && X*X+Y*Y<2){
-            inarrow=true
+        if (d>0&&d<m*m && X*X+Y*Y<1){
+            A=0;
+        }
+        else if (d>0&&d<m*m && X*X+Y*Y<2){
+        A*=1-(1.42-(X*X+Y*Y)**0.5)/0.4
+        
         }
     }
-    if (inarrow){
-        this.color(0,0,0, 1);       
-    }
-    else{
-        let gij=(M[i][j]-min)/(max-min)
-        let R = gij<0.35?0:gij<0.66? (gij-0.35)/0.31:gij<0.89?1:1-0.5*(gij-0.89)/0.11
-        let G = gij<0.125?0:gij<0.375?(gij-0.125)/0.25:gij<0.64?1:gij<0.91?1-(gij-0.64)/0.27:0
-        let B = gij<0.11?0.5+gij/0.22:gij<0.34?1:gij<0.65?1-(gij-0.34)/0.31:0
-        this.color(R,G,B, 1);
-    }
+
+    let gij=(M[i][j]-min)/(max-min)
+    R = gij<0.35?0:gij<0.66? (gij-0.35)/0.31:gij<0.89?1:1-0.5*(gij-0.89)/0.11
+    let G = gij<0.125?0:gij<0.375?(gij-0.125)/0.25:gij<0.64?1:gij<0.91?1-(gij-0.64)/0.27:0
+    let B = gij<0.11?0.5+gij/0.22:gij<0.34?1:gij<0.65?1-(gij-0.34)/0.31:0
+    this.color(R*A,G*A,B*A, 1);
     
 }).setOutput([512, 512]).setGraphical(true);
 
@@ -520,7 +530,7 @@ eps=toperm(grid);
 console.log(getval(V))
 console.log(getval(p))
 console.log(getval(mutable))
-
+console.log(2**2);
 nextVoltage(200,eps);
 console.log(getval(V));
 Vmap(ctx2,getval(V));
