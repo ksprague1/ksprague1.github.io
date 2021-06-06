@@ -132,7 +132,7 @@ console.log(max + " on cpu in "+ms+' ms')
 var startTime=(new Date()).getTime()
 
 for (var i=0;i<1000;i++){
-max = gpumin(testarrgpu)
+max = gpumax(testarrgpu)
 }
 
 var newtime=(new Date()).getTime()
@@ -325,7 +325,7 @@ function Erender(ctx,V){
 
 const Emap = gpu.createKernel(function(Ex,Ey,M,maxarr,minarr) {
     let j=this.thread.x
-    //friggin uupside down and sideways jesus
+    //coordinate system is upside down and sideways jesus
     let i=511-this.thread.y
     let max=maxarr[0][0];
     let min=minarr[0][0];
@@ -333,47 +333,36 @@ const Emap = gpu.createKernel(function(Ex,Ey,M,maxarr,minarr) {
     //coordintates of potential vector arrow this is part of
     let ri=Math.floor(i/R/2)*2*R+R
     let rj=Math.floor(j/R/2)*2*R+R
-    //vector representing arrow
+    //vector representing the field arrow
     let dx=-(R-4)*(Ex[ri][rj]/max)
     let dy=(R-4)*(Ey[ri][rj]/max)
     let m=(R-4)*(M[ri][rj])/max
     let A=1.0;
-    //now we check if it is inside the arrow
+    //now we check if our pixel is inside the arrow
     if (m>0){
         let x = i-ri
         let y=j-rj
         //arrowhead can be done using inf and 1 norm in rotated coords
         let X = dx*(dy-y)/m - dy*(dx-x)/m
         let Y = dy*(dy-y)/m + dx*(dx-x)/m
-        if (Math.abs(X)+0.5*Math.abs(Y)< 3.5 &&Math.abs(Y+3.5)<3.5){
-            A=0;
-        }
-        else if (Math.abs(X)+0.5*Math.abs(Y)< 4.5 &&Math.abs(Y+3.5)<3.5){
-            A*=1-(4.5-Math.abs(X)-0.5*Math.abs(Y));
-        }
-        else if (Math.abs(X)+0.5*Math.abs(Y)< 3.5 &&Math.abs(Y+3.5)<4.5){
-            A*=1-(4.5-Math.abs(Y+3.5));
-        }
-        else if (Math.abs(X)+0.5*Math.abs(Y)< 4.5 &&Math.abs(Y+3.5)<4.5){
-            A*=1-(9-Math.abs(Y+3.5)-Math.abs(X)-0.5*Math.abs(Y))/2;
-        }
+        
+        // A<=0 if its in the arrowhead, 0<A<1 if its on the border A>1 if outside.
+        A=Math.max(1-(4.5-Math.abs(X)-0.5*Math.abs(Y)), 1-(4.5-Math.abs(Y+3.5)))
         
         //arrow body done by looking at length of orthogonal (to E field) part of pixel vector
         let d=x*dx+y*dy
         X = x-d*dx/m/m
-        Y = y-d*dy/m/m
-        if (d>0&&d<m*m && X*X+Y*Y<1){
-            A=0;
+        Y = y-d*dy/m/m       
+        if (d<m*m){
+            //Same assignment here but with the arrow body
+            A=Math.min(A,Math.max(-d,1-(1.42-(X*X+Y*Y)**0.5)/0.4))
         }
-        else if (d>0&&d<m*m && X*X+Y*Y<2){
-        A*=1-(1.42-(X*X+Y*Y)**0.5)/0.4
-        }
-        else if (d>-1&&d<m*m&&X*X+Y*Y<2){
-        A*=-d
-        }
+        //clip A between 0 and 1
+        A=A<0?0:A>1?1:A
     }
 
     let gij=(M[i][j]-min)/(max-min)
+    //already used R for something woops
     R = gij<0.35?0:gij<0.66? (gij-0.35)/0.31:gij<0.89?1:1-0.5*(gij-0.89)/0.11
     let G = gij<0.125?0:gij<0.375?(gij-0.125)/0.25:gij<0.64?1:gij<0.91?1-(gij-0.64)/0.27:0
     let B = gij<0.11?0.5+gij/0.22:gij<0.34?1:gij<0.65?1-(gij-0.34)/0.31:0
@@ -532,6 +521,7 @@ eps=toperm(grid);
 console.log(getval(V))
 console.log(getval(p))
 console.log(getval(mutable))
+console.log(Math.max(1,2,3,67))
 console.log(2**2);
 nextVoltage(200,eps);
 console.log(getval(V));
