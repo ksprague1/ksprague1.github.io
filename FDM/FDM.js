@@ -367,7 +367,9 @@ const Emap = gpu.createKernel(function(Ex,Ey,M,maxarr,minarr) {
         }
         else if (d>0&&d<m*m && X*X+Y*Y<2){
         A*=1-(1.42-(X*X+Y*Y)**0.5)/0.4
-        
+        }
+        else if (d>-1&&d<m*m&&X*X+Y*Y<2){
+        A*=-d
         }
     }
 
