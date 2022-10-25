@@ -6,7 +6,7 @@
 Theta: <span id="thetatext">0</span><br>
 <input type="range" min="0" max="360" value="0" class="slider" id="theta"><br>
 sc: <span id="sctext">1.0</span><br>
-<input type="range" min="0" max="100" value="50" class="slider" id="sc"><br>
+<input type="range" min="0" max="100" value="100" class="slider" id="sc"><br>
 w: <span id="wtext">100</span><br>
 <input type="range" min="0" max="100" value="100" class="slider" id="w"><br>
 
@@ -20,7 +20,7 @@ w: <span id="wtext">100</span><br>
 const $ = q => document.getElementById(q);
 var theta = 360
 var sc = 1
-var w = 0;
+var w = 1;
 
 $("theta").oninput = function() {
   theta = this.value;
