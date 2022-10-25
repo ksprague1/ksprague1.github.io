@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<div class="slidecontainer">
+Theta: <span id="thetatext">0</span><br>
+<input type="range" min="0" max="360" value="0" class="slider" id="theta"><br>
+sc: <span id="sctext">1.0</span><br>
+<input type="range" min="0" max="100" value="100" class="slider" id="sc">
+</div>
+
+
+<script>
+
+const $ = q => document.getElementById(q);
+var theta = 360
+var sc = 1
+
+$("theta").oninput = function() {
+  theta = this.value;
+  $('thetatext').innerHTML = theta.toString();
+  setbg();
+}
+
+$("sc").oninput = function() {
+  sc = this.value/100;
+  $('sctext').innerHTML = sc.toString();
+  setbg();
+}
+
+//rgb generator
+function angleToRGB(theta,sc){
+
+var r=(theta/360+1.0/6)%1.0;
+var b=(theta/360+3.0/6)%1.0;
+var g=(theta/360+5.0/6)%1.0;
+//colorwheel assignment multiplied by the scaler sc
+r = (r<1.0/3?1:r<1.0/2?3-6*r:r<5.0/6?0:6*r-5)*sc;
+g = (g<1.0/3?1:g<1.0/2?3-6*g:g<5.0/6?0:6*g-5)*sc;
+b = (b<1.0/3?1:b<1.0/2?3-6*b:b<5.0/6?0:6*b-5)*sc;
+return [r,g,b]
+}
+
+function rgbToHex(RGB){
+  var r=Math.floor(RGB[0]*255.9).toString(16);
+  var g=Math.floor(RGB[1]*255.9).toString(16);
+  var b=Math.floor(RGB[2]*255.9).toString(16);
+  r=r.length==1?'0'+r:r; g=g.length==1?'0'+g:g; b=b.length==1?'0'+b:b;
+  var colHex='#'+r+g+b;
+  return colHex;
+}
+
+function setbg() {
+  document.body.style.background = rgbToHex(angleToRGB(theta,sc));
+}
+</script>
+
+</body>
+</html>
