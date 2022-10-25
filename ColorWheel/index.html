@@ -6,7 +6,12 @@
 Theta: <span id="thetatext">0</span><br>
 <input type="range" min="0" max="360" value="0" class="slider" id="theta"><br>
 sc: <span id="sctext">1.0</span><br>
-<input type="range" min="0" max="100" value="100" class="slider" id="sc">
+<input type="range" min="0" max="100" value="50" class="slider" id="sc"><br>
+w: <span id="wtext">100</span><br>
+<input type="range" min="0" max="100" value="100" class="slider" id="w"><br>
+
+
+<button type="button" onclick="rand()">Random Color</button>
 </div>
 
 
@@ -15,6 +20,7 @@ sc: <span id="sctext">1.0</span><br>
 const $ = q => document.getElementById(q);
 var theta = 360
 var sc = 1
+var w = 0;
 
 $("theta").oninput = function() {
   theta = this.value;
@@ -28,16 +34,27 @@ $("sc").oninput = function() {
   setbg();
 }
 
+$("w").oninput = function() {
+  w = this.value/100;
+  $('wtext').innerHTML = w.toString();
+  setbg();
+}
+
 //rgb generator
-function angleToRGB(theta,sc){
+function angleToRGB(theta,sc,w){
 
 var r=(theta/360+1.0/6)%1.0;
 var b=(theta/360+3.0/6)%1.0;
 var g=(theta/360+5.0/6)%1.0;
 //colorwheel assignment multiplied by the scaler sc
-r = (r<1.0/3?1:r<1.0/2?3-6*r:r<5.0/6?0:6*r-5)*sc;
-g = (g<1.0/3?1:g<1.0/2?3-6*g:g<5.0/6?0:6*g-5)*sc;
-b = (b<1.0/3?1:b<1.0/2?3-6*b:b<5.0/6?0:6*b-5)*sc;
+r = (r<1.0/3?1:r<1.0/2?3-6*r:r<5.0/6?0:6*r-5)*sc+w;
+g = (g<1.0/3?1:g<1.0/2?3-6*g:g<5.0/6?0:6*g-5)*sc+w;
+b = (b<1.0/3?1:b<1.0/2?3-6*b:b<5.0/6?0:6*b-5)*sc+w;
+
+r=r>1?1:r
+g=g>1?1:g
+b=b>1?1:b
+
 return [r,g,b]
 }
 
@@ -50,8 +67,13 @@ function rgbToHex(RGB){
   return colHex;
 }
 
+function rand(){
+var rv = [Math.random(),Math.random(),Math.random()]
+document.body.style.background = rgbToHex(rv)
+}
+
 function setbg() {
-  document.body.style.background = rgbToHex(angleToRGB(theta,sc));
+  document.body.style.background = rgbToHex(angleToRGB(theta,sc,w));
 }
 </script>
 
