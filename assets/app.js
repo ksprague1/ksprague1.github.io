@@ -205,8 +205,12 @@
         td.className = "hm-cell";
         td.style.color = "#ffffff";
         td.setAttribute("tabindex", "0");
+        td.title = `Click to view ${DECK_NAMES[deck]} ${STAKE_NAMES[s]} Stake replays`;
         td.addEventListener("mouseenter", () => setInspector(deck, s));
         td.addEventListener("focus", () => setInspector(deck, s));
+        td.addEventListener("click", () => {
+          window.location.href = `replays/?deck=${encodeURIComponent(deck)}&stake=${s}`;
+        });
         tr.appendChild(td);
         cells.push(td);
       }

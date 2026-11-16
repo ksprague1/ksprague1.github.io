@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RLBalatro Replays — Kyle Sprague</title>
-  <meta name="description" content="Gold Stake Yellow Deck replay videos with Ante/Blind jump controls and synchronized decision play-by-play." />
+  <meta name="description" content="RLBalatro replay videos with Ante/Blind jump controls and synchronized decision play-by-play." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
@@ -12,11 +12,28 @@
   <style>
     .replay-top {
       display: flex;
-      align-items: center;
+      align-items: flex-end;
       justify-content: space-between;
       flex-wrap: wrap;
-      gap: 12px;
+      gap: 14px;
       margin-bottom: 18px;
+    }
+    .replay-selectors {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .replay-select {
+      padding: 7px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 0.86rem;
+      font-weight: 600;
+      cursor: pointer;
     }
     .replay-layout {
       display: grid;
@@ -31,11 +48,34 @@
       padding: 16px;
       box-shadow: var(--shadow);
     }
-    .video-card video {
+    .player-stage {
+      position: relative;
       width: 100%;
-      border-radius: var(--radius-sm);
+      aspect-ratio: 4 / 3;
       background: #000;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+    .player-stage video,
+    .player-stage iframe,
+    .player-stage #yt-player {
+      width: 100%;
+      height: 100%;
       display: block;
+      border: 0;
+    }
+    .player-empty {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      gap: 8px;
     }
     .player-controls {
       display: flex;
@@ -216,18 +256,29 @@
     <div class="container">
       <div class="replay-top">
         <div>
-          <h1 style="margin: 0 0 4px; font-size: clamp(1.5rem, 2.5vw, 2rem);">RLBalatro Gold Stake Replays</h1>
+          <h1 style="margin: 0 0 4px; font-size: clamp(1.5rem, 2.5vw, 2rem);">RLBalatro Replays</h1>
           <p id="run-summary" style="margin: 0; color: var(--text-muted); font-size: 0.94rem;"></p>
         </div>
-        <div class="btn-group" role="group" aria-label="Select replay">
-          <button class="seg-btn active" type="button" data-run="best">Best Run (Ante 11)</button>
-          <button class="seg-btn" type="button" data-run="median">Median Run (Ante 8 Boss)</button>
+        <div class="replay-selectors">
+          <select id="deck-select" class="replay-select" aria-label="Select deck"></select>
+          <select id="stake-select" class="replay-select" aria-label="Select stake"></select>
+          <div class="btn-group" role="group" aria-label="Select run pick">
+            <button class="seg-btn" type="button" data-pick="best">Best</button>
+            <button class="seg-btn" type="button" data-pick="median">Median</button>
+            <button class="seg-btn" type="button" data-pick="worst">Worst</button>
+          </div>
         </div>
       </div>
 
       <div class="replay-layout">
         <div class="video-card">
-          <video id="replay-video" controls preload="metadata" playsinline></video>
+          <div class="player-stage">
+            <video id="replay-video" controls preload="metadata" playsinline style="display: none;"></video>
+            <div id="yt-container" style="display: none; width: 100%; height: 100%;">
+              <div id="yt-player"></div>
+            </div>
+            <div id="player-empty" class="player-empty" style="display: none;"></div>
+          </div>
 
           <div class="player-controls">
             <div style="display: flex; gap: 8px;">
@@ -238,7 +289,7 @@
               <button class="seg-btn active" type="button" data-speed="1">1x</button>
               <button class="seg-btn" type="button" data-speed="1.5">1.5x</button>
               <button class="seg-btn" type="button" data-speed="2">2x</button>
-              <button class="seg-btn" type="button" data-speed="4">4x</button>
+              <button class="seg-btn" type="button" data-speed="4" id="speed-4x">4x</button>
             </div>
           </div>
 
@@ -252,7 +303,7 @@
           <div class="pbp-status" id="pbp-status">
             <div><span>Ante:</span> <strong id="st-ante">1</strong></div>
             <div><span>Round:</span> <strong id="st-round">0</strong></div>
-            <div><span>Cash:</span> <strong id="st-money">$14</strong></div>
+            <div><span>Cash:</span> <strong id="st-money">$0</strong></div>
             <div><span>Chips:</span> <strong id="st-chips">0 / 0</strong></div>
             <div><span>Hands:</span> <strong id="st-hands">4</strong></div>
             <div><span>Discards:</span> <strong id="st-discards">2</strong></div>
@@ -273,31 +324,113 @@
   </main>
 
   <script src="../../assets/app.js"></script>
-  <script src="data.js"></script>
+  <script src="manifest.js"></script>
+  <script src="youtube_ids.js"></script>
   <script>
     (function () {
-      const RUN_INFO = {
-        best: {
-          src: "videos/b_yellow_s8_best.mp4",
-          summary: "Yellow Deck · Gold Stake (Stake 8) — Wins Ante 8 and reaches Endless Ante 11 (50.6M / 58M chips, 38 blinds beaten).",
-        },
-        median: {
-          src: "videos/b_yellow_s8_median.mp4",
-          summary: "Yellow Deck · Gold Stake (Stake 8) — Loses on the Ante 8 Boss Blind with 993k / 1.2M chips after beating 23 blinds.",
-        },
+      const DECK_NAMES = {
+        b_red: "Red Deck",
+        b_blue: "Blue Deck",
+        b_yellow: "Yellow Deck",
+        b_green: "Green Deck",
+        b_black: "Black Deck",
+        b_magic: "Magic Deck",
+        b_nebula: "Nebula Deck",
+        b_ghost: "Ghost Deck",
+        b_abandoned: "Abandoned Deck",
+        b_checkered: "Checkered Deck",
+        b_zodiac: "Zodiac Deck",
+        b_painted: "Painted Deck",
+        b_anaglyph: "Anaglyph Deck",
+        b_plasma: "Plasma Deck",
+        b_erratic: "Erratic Deck",
+      };
+      const STAKE_NAMES = {
+        1: "White (1)",
+        2: "Red (2)",
+        3: "Green (3)",
+        4: "Black (4)",
+        5: "Blue (5)",
+        6: "Purple (6)",
+        7: "Orange (7)",
+        8: "Gold (8)",
       };
 
+      const manifest = window.REPLAY_MANIFEST || {};
+      const ytIds = window.YOUTUBE_IDS || {};
+
+      const deckSelect = document.getElementById("deck-select");
+      const stakeSelect = document.getElementById("stake-select");
       const video = document.getElementById("replay-video");
+      const ytContainer = document.getElementById("yt-container");
+      const playerEmpty = document.getElementById("player-empty");
       const summaryEl = document.getElementById("run-summary");
       const chapterGrid = document.getElementById("chapter-grid");
       const pbpList = document.getElementById("pbp-list");
       const toggleReorders = document.getElementById("toggle-reorders");
+      const speed4xBtn = document.getElementById("speed-4x");
 
-      let currentRunKey = "best";
-      let currentData = window.REPLAY_DATA.best;
+      Object.entries(DECK_NAMES).forEach(([k, name]) => {
+        const opt = document.createElement("option");
+        opt.value = k;
+        opt.textContent = name;
+        deckSelect.appendChild(opt);
+      });
+      Object.entries(STAKE_NAMES).forEach(([k, name]) => {
+        const opt = document.createElement("option");
+        opt.value = k;
+        opt.textContent = name;
+        stakeSelect.appendChild(opt);
+      });
+
+      const params = new URLSearchParams(window.location.search);
+      let currentDeck = DECK_NAMES[params.get("deck")] ? params.get("deck") : "b_yellow";
+      let currentStake = STAKE_NAMES[params.get("stake")] ? Number(params.get("stake")) : 8;
+      let currentPick = ["best", "median", "worst"].includes(params.get("pick")) ? params.get("pick") : "best";
+
+      let currentData = null;
       let visibleEvents = [];
       let activeEventIdx = -1;
       let activeChapterIdx = -1;
+      let pendingSeek = null;
+
+      // Player mode: "mp4" | "yt" | "none"
+      let playerMode = "none";
+      let ytPlayer = null;
+      let ytReady = false;
+      let ytApiLoading = false;
+      let ytPollTimer = null;
+      let pendingYtVideoId = null;
+
+      function ensureYtApi(onReady) {
+        if (window.YT && window.YT.Player) {
+          onReady();
+          return;
+        }
+        window.onYouTubeIframeAPIReady = onReady;
+        if (!ytApiLoading) {
+          ytApiLoading = true;
+          const tag = document.createElement("script");
+          tag.src = "https://www.youtube.com/iframe_api";
+          document.head.appendChild(tag);
+        }
+      }
+
+      function startYtPoll() {
+        stopYtPoll();
+        ytPollTimer = setInterval(() => {
+          if (playerMode === "yt" && ytPlayer && ytReady && typeof ytPlayer.getCurrentTime === "function") {
+            syncToTime(ytPlayer.getCurrentTime());
+          }
+        }, 200);
+      }
+
+      function stopYtPoll() {
+        if (ytPollTimer) {
+          clearInterval(ytPollTimer);
+          ytPollTimer = null;
+        }
+      }
 
       function fmtTime(sec) {
         const m = Math.floor(sec / 60);
@@ -311,24 +444,46 @@
         return String(n);
       }
 
-      let pendingSeek = null;
+      function getSpeed() {
+        return Number(document.querySelector("[data-speed].active")?.getAttribute("data-speed") || 1);
+      }
+
+      function applySpeed(spd) {
+        if (playerMode === "mp4") {
+          video.playbackRate = spd;
+        } else if (playerMode === "yt" && ytPlayer && ytReady) {
+          ytPlayer.setPlaybackRate(Math.min(2, spd));
+        }
+      }
 
       function seekTo(t) {
-        if (video.readyState < 1) {
-          pendingSeek = t;
-          video.load();
+        if (playerMode === "yt") {
+          if (ytPlayer && ytReady) {
+            ytPlayer.seekTo(t, true);
+            ytPlayer.playVideo();
+          } else {
+            pendingSeek = t;
+          }
+          syncToTime(t);
           return;
         }
-        pendingSeek = null;
-        video.currentTime = t;
-        if (video.paused) {
-          video.play().catch(() => {});
+        if (playerMode === "mp4") {
+          if (video.readyState < 1) {
+            pendingSeek = t;
+            video.load();
+            return;
+          }
+          pendingSeek = null;
+          video.currentTime = t;
+          if (video.paused) video.play().catch(() => {});
+          syncToTime(t);
+          return;
         }
         syncToTime(t);
       }
 
       video.addEventListener("loadedmetadata", () => {
-        if (pendingSeek !== null) {
+        if (pendingSeek !== null && playerMode === "mp4") {
           const t = pendingSeek;
           pendingSeek = null;
           video.currentTime = t;
@@ -337,9 +492,14 @@
         }
       });
 
+      video.addEventListener("timeupdate", () => {
+        if (playerMode === "mp4") syncToTime(video.currentTime);
+      });
+
       function renderChapters() {
         chapterGrid.innerHTML = "";
-        currentData.chapters.forEach((ch, idx) => {
+        if (!currentData) return;
+        currentData.chapters.forEach((ch) => {
           const btn = document.createElement("button");
           btn.type = "button";
           const isBoss = ch.round % 3 === 0;
@@ -352,12 +512,13 @@
       }
 
       function renderPlayByPlay() {
-        const showReorders = toggleReorders.checked;
-        visibleEvents = currentData.events.filter((e) => showReorders || !e.reorder);
         pbpList.innerHTML = "";
         activeEventIdx = -1;
+        if (!currentData) return;
+        const showReorders = toggleReorders.checked;
+        visibleEvents = currentData.events.filter((e) => showReorders || !e.reorder);
 
-        visibleEvents.forEach((ev, idx) => {
+        visibleEvents.forEach((ev) => {
           const btn = document.createElement("button");
           btn.type = "button";
           btn.className = "pbp-row";
@@ -387,7 +548,7 @@
       }
 
       function syncToTime(t) {
-        // Find latest chapter <= t + 0.05
+        if (!currentData) return;
         let cIdx = 0;
         for (let i = 0; i < currentData.chapters.length; i++) {
           if (currentData.chapters[i].t <= t + 0.05) cIdx = i;
@@ -400,7 +561,6 @@
           activeChapterIdx = cIdx;
         }
 
-        // Find latest visible event <= t + 0.05
         let eIdx = 0;
         for (let i = 0; i < visibleEvents.length; i++) {
           if (visibleEvents[i].t <= t + 0.05) eIdx = i;
@@ -418,52 +578,166 @@
         }
       }
 
-      function loadRun(key) {
-        currentRunKey = key;
-        currentData = window.REPLAY_DATA[key];
-        summaryEl.textContent = RUN_INFO[key].summary;
-        const speed = Number(document.querySelector("[data-speed].active")?.getAttribute("data-speed") || 1);
-        video.src = RUN_INFO[key].src;
-        video.playbackRate = speed;
-        activeChapterIdx = -1;
-        activeEventIdx = -1;
-        renderChapters();
-        renderPlayByPlay();
-        syncToTime(0);
+      function showVideoSource(runKey, meta) {
+        const ytId = ytIds[runKey];
+        video.pause();
+        stopYtPoll();
+
+        if (ytId) {
+          playerMode = "yt";
+          video.style.display = "none";
+          playerEmpty.style.display = "none";
+          ytContainer.style.display = "block";
+          if (speed4xBtn) speed4xBtn.style.display = "none";
+
+          ensureYtApi(() => {
+            if (ytPlayer && ytReady) {
+              ytPlayer.loadVideoById(ytId);
+              applySpeed(getSpeed());
+              startYtPoll();
+            } else {
+              pendingYtVideoId = ytId;
+              ytPlayer = new YT.Player("yt-player", {
+                videoId: ytId,
+                playerVars: { rel: 0, modestbranding: 1 },
+                events: {
+                  onReady: () => {
+                    ytReady = true;
+                    applySpeed(getSpeed());
+                    startYtPoll();
+                    if (pendingSeek !== null) {
+                      const t = pendingSeek;
+                      pendingSeek = null;
+                      ytPlayer.seekTo(t, true);
+                    }
+                  },
+                },
+              });
+            }
+          });
+        } else if (meta && meta.local) {
+          playerMode = "mp4";
+          ytContainer.style.display = "none";
+          playerEmpty.style.display = "none";
+          video.style.display = "block";
+          if (speed4xBtn) speed4xBtn.style.display = "";
+          video.src = `videos/${runKey}.mp4`;
+          video.playbackRate = getSpeed();
+        } else {
+          playerMode = "none";
+          video.style.display = "none";
+          ytContainer.style.display = "none";
+          playerEmpty.style.display = "flex";
+          if (speed4xBtn) speed4xBtn.style.display = "";
+          playerEmpty.innerHTML = meta
+            ? `<strong>No video uploaded yet for <code>${runKey}</code></strong><span>Add its unlisted YouTube ID to <code>ml/replays/youtube_ids.js</code>. Play-by-play is still available on the right.</span>`
+            : `<strong>No replay recorded for ${DECK_NAMES[currentDeck]} · ${STAKE_NAMES[currentStake]} (${currentPick})</strong><span>Try another pick or deck/stake above.</span>`;
+        }
       }
 
-      video.addEventListener("timeupdate", () => syncToTime(video.currentTime));
+      async function loadSelection() {
+        deckSelect.value = currentDeck;
+        stakeSelect.value = String(currentStake);
+
+        // Update pick button availability
+        const availablePicks = ["best", "median", "worst"].filter(
+          (p) => manifest[`${currentDeck}_s${currentStake}_${p}`]
+        );
+        if (availablePicks.length && !availablePicks.includes(currentPick)) {
+          currentPick = availablePicks[0];
+        }
+
+        document.querySelectorAll("[data-pick]").forEach((btn) => {
+          const p = btn.getAttribute("data-pick");
+          btn.classList.toggle("active", p === currentPick);
+          btn.disabled = !manifest[`${currentDeck}_s${currentStake}_${p}`];
+          btn.style.opacity = btn.disabled ? "0.4" : "1";
+        });
+
+        const url = new URL(window.location.href);
+        url.searchParams.set("deck", currentDeck);
+        url.searchParams.set("stake", String(currentStake));
+        url.searchParams.set("pick", currentPick);
+        window.history.replaceState({}, "", url);
+
+        const runKey = `${currentDeck}_s${currentStake}_${currentPick}`;
+        const meta = manifest[runKey];
+
+        if (meta) {
+          const outcome = meta.won ? `Won Ante 8, reached Ante ${meta.ante}` : `Ended Ante ${meta.ante}`;
+          summaryEl.textContent = `${DECK_NAMES[currentDeck]} · ${STAKE_NAMES[currentStake]} Stake (${currentPick}) — ${outcome} (${fmtChips(meta.chips)} / ${fmtChips(meta.req)} chips, ${meta.blinds} blinds beaten).`;
+        } else {
+          summaryEl.textContent = `${DECK_NAMES[currentDeck]} · ${STAKE_NAMES[currentStake]} Stake — no recorded replay in this set yet.`;
+        }
+
+        showVideoSource(runKey, meta);
+
+        activeChapterIdx = -1;
+        activeEventIdx = -1;
+        currentData = null;
+        renderChapters();
+        renderPlayByPlay();
+
+        if (meta) {
+          try {
+            const resp = await fetch(`runs/${runKey}.json`);
+            if (resp.ok) {
+              currentData = await resp.json();
+              renderChapters();
+              renderPlayByPlay();
+              syncToTime(0);
+            }
+          } catch (err) {
+            console.error("Failed to load run JSON:", err);
+          }
+        }
+      }
+
+      deckSelect.addEventListener("change", () => {
+        currentDeck = deckSelect.value;
+        loadSelection();
+      });
+
+      stakeSelect.addEventListener("change", () => {
+        currentStake = Number(stakeSelect.value);
+        loadSelection();
+      });
+
+      document.querySelectorAll("[data-pick]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          if (btn.disabled) return;
+          currentPick = btn.getAttribute("data-pick");
+          loadSelection();
+        });
+      });
+
       toggleReorders.addEventListener("change", () => {
         renderPlayByPlay();
-        syncToTime(video.currentTime);
+        if (playerMode === "mp4") syncToTime(video.currentTime);
+        else if (playerMode === "yt" && ytPlayer && ytReady) syncToTime(ytPlayer.getCurrentTime());
       });
 
       document.getElementById("prev-blind").addEventListener("click", () => {
+        if (!currentData) return;
         const next = Math.max(0, activeChapterIdx - 1);
         if (currentData.chapters[next]) seekTo(currentData.chapters[next].t);
       });
+
       document.getElementById("next-blind").addEventListener("click", () => {
+        if (!currentData) return;
         const next = Math.min(currentData.chapters.length - 1, activeChapterIdx + 1);
         if (currentData.chapters[next]) seekTo(currentData.chapters[next].t);
-      });
-
-      document.querySelectorAll("[data-run]").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          document.querySelectorAll("[data-run]").forEach((b) => b.classList.remove("active"));
-          btn.classList.add("active");
-          loadRun(btn.getAttribute("data-run"));
-        });
       });
 
       document.querySelectorAll("[data-speed]").forEach((btn) => {
         btn.addEventListener("click", () => {
           document.querySelectorAll("[data-speed]").forEach((b) => b.classList.remove("active"));
           btn.classList.add("active");
-          video.playbackRate = Number(btn.getAttribute("data-speed"));
+          applySpeed(Number(btn.getAttribute("data-speed")));
         });
       });
 
-      loadRun("best");
+      loadSelection();
     })();
   </script>
 </body>
