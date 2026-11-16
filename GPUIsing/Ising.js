@@ -24,7 +24,7 @@ function random_ones(dim,arr,N){
  }
 }
 
-const gpu = new GPU();
+const gpu = new (GPU.GPU || GPU)();
 
 const SIZE = 512;
 

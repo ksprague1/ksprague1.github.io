@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ML &amp; RL — Kyle Sprague</title>
+  <meta name="description" content="RLBalatro Gold Stake PPO results and L2DM overview." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/styles.css" />
+</head>
+<body>
+  <header class="navbar">
+    <div class="container nav-inner">
+      <a class="brand" href="../">
+        <span class="brand-dot" aria-hidden="true"></span>
+        <span>Kyle Sprague</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary navigation">
+        <a href="../">Home</a>
+        <a href="./">ML &amp; RL</a>
+        <a href="replays/">Replays</a>
+        <a href="../#simulations">Old Simulations</a>
+        <a href="../#past-work">Past Work</a>
+      </nav>
+      <div class="nav-actions">
+        <button id="theme-toggle" class="icon-btn" type="button">Light mode</button>
+        <a class="icon-btn" href="https://github.com/ksprague1" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" style="padding: 52px 0 40px;">
+      <div class="container hero-content">
+        <h1>Machine Learning &amp; Games</h1>
+        <p class="hero-lead">
+          Results and evaluation breakdown from <strong>RLBalatro</strong>, a fast headless C++17 port of Balatro
+          paired with PPO agents trained to Gold Stake.
+        </p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="#balatro">RLBalatro Results</a>
+          <a class="btn" href="replays/">Watch Replays</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- RLBalatro -->
+    <section id="balatro">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <h2>RLBalatro</h2>
+            <p class="section-desc">
+              A headless C++17 port of Balatro 1.0.1o verified action-by-action against the game's Lua code
+              in LuaJIT 2.0.5 (0 mismatches across 5,950+ runs and ~446,000 actions), paired with a
+              6-layer Transformer PPO policy trained for <strong>3.28B steps</strong> (13.56M games) on Gold Stake across all 15 decks.
+            </p>
+          </div>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <a class="btn btn-primary" href="replays/">Watch Replays &rarr;</a>
+            <a class="btn" href="https://github.com/ksprague1/RLBalatro" target="_blank" rel="noopener">GitHub Repo &rarr;</a>
+          </div>
+        </div>
+
+        <div class="card sticky-timeline">
+          <div class="heatmap-toolbar" style="margin-bottom: 6px;">
+            <div>
+              <h3 class="heatmap-title">Training Timeline</h3>
+              <p class="heatmap-subtitle">Scrub across training steps to update the Gold Stake stats, heatmap, and cards below.</p>
+            </div>
+            <div style="font-family: var(--font-mono); font-size: 0.9rem; font-weight: 600;">
+              <span id="step-label">3.28B steps</span>
+              <span style="color: var(--text-muted); font-weight: 500;">(<span id="update-label">u50000</span>)</span>
+            </div>
+          </div>
+          <input id="step-slider" type="range" min="0" max="499" value="499" style="width: 100%; accent-color: var(--accent);" />
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label">White Stake (u50000 Eval)</div>
+            <div class="kpi-val emerald">92.6% / 97.0%</div>
+            <div class="kpi-sub">97.0% on Blue &amp; Ghost Decks (500-game eval)</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Gold Stake (Mean / Best Deck)</div>
+            <div class="kpi-val gold" id="kpi-gold">26.2% / 43.8%</div>
+            <div class="kpi-sub" id="kpi-gold-sub">43.8% Yellow &middot; 42.6% Blue &middot; 35.2% Ghost</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Highest Single-Run Score</div>
+            <div class="kpi-val purple" id="kpi-best">11.38B</div>
+            <div class="kpi-sub" id="kpi-best-sub">11,377,637,957 chips on Plasma Deck Gold Stake</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Training Run (0071)</div>
+            <div class="kpi-val" id="kpi-steps">3.28B steps</div>
+            <div class="kpi-sub" id="kpi-steps-sub">13.56M games &middot; 241.8M blinds attempted</div>
+          </div>
+        </div>
+
+        <div class="card heatmap-card">
+          <div class="heatmap-toolbar">
+            <div>
+              <h3 class="heatmap-title">15 Decks &times; 8 Stakes Evaluation (60,000 Games)</h3>
+              <p class="heatmap-subtitle">Stakes 1&ndash;7 linearly interpolated from u50000 eval when scrubbed; Gold (8) column is live. Hover any cell for details.</p>
+            </div>
+            <div class="btn-group" role="group" aria-label="Sort decks">
+              <button class="seg-btn active" type="button" data-sort="default">Default</button>
+              <button class="seg-btn" type="button" data-sort="gold">Gold Stake &darr;</button>
+              <button class="seg-btn" type="button" data-sort="white">White Stake &darr;</button>
+            </div>
+          </div>
+
+          <div class="heatmap-wrap">
+            <table class="heatmap-table">
+              <thead>
+                <tr>
+                  <th class="deck-col">Deck</th>
+                  <th>White (1)</th>
+                  <th>Red (2)</th>
+                  <th>Green (3)</th>
+                  <th>Black (4)</th>
+                  <th>Blue (5)</th>
+                  <th>Purple (6)</th>
+                  <th>Orange (7)</th>
+                  <th>Gold (8)</th>
+                  <th style="text-align:right;">Gold Peak</th>
+                </tr>
+              </thead>
+              <tbody id="heatmap-body"></tbody>
+            </table>
+          </div>
+
+          <div class="heatmap-inspector" aria-live="polite">
+            <div id="inspector-title"><strong>Yellow Deck</strong> &middot; Gold Stake (Stake 8)</div>
+            <div class="inspector-metrics" id="inspector-metrics"></div>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="card">
+            <div class="heatmap-toolbar" style="margin-bottom: 6px;">
+              <div>
+                <h3 class="heatmap-title" id="left-card-title">Hands Played</h3>
+                <p class="heatmap-subtitle" id="left-card-sub">Gold Stake across all 15 decks.</p>
+              </div>
+              <div class="btn-group" role="group" aria-label="Category">
+                <button class="seg-btn active" type="button" data-left-mode="hands">Hands</button>
+                <button class="seg-btn" type="button" data-left-mode="tarots">Tarots</button>
+                <button class="seg-btn" type="button" data-left-mode="spectrals">Spectrals</button>
+              </div>
+            </div>
+            <div id="hands-bars" class="bar-list"></div>
+          </div>
+
+          <div class="card">
+            <div class="heatmap-toolbar" style="margin-bottom: 6px;">
+              <div>
+                <h3 class="heatmap-title">Gold Stake Joker Stats</h3>
+                <p class="heatmap-subtitle">Win rate vs. most blinds played.</p>
+              </div>
+              <div class="btn-group" role="group" aria-label="Joker metric">
+                <button class="seg-btn active" type="button" data-joker-mode="winrate">Top Win Rate</button>
+                <button class="seg-btn" type="button" data-joker-mode="blinds">Most Blinds</button>
+              </div>
+            </div>
+            <div id="jokers-bars" class="bar-list"></div>
+          </div>
+        </div>
+
+        <div class="insight-callout">
+          <strong>Note on reward shaping:</strong> Earlier runs that included a small reward for holding cash
+          (<code>--reward-money 1</code>) mostly played Pairs and hoarded $500+ for <em>Bull</em> and <em>Bootstraps</em>
+          (peaking around 6.38M chips). Dropping the money reward (<code>--reward-money 0</code>) got the agent to spend
+          on rerolls, booster packs, and scaling xMult jokers (<em>Driver's License</em>, <em>Steel Joker</em>,
+          <em>Vampire</em>, <em>Constellation</em>, <em>Hologram</em>), pushing peak Gold Stake runs over <strong>11.38B chips</strong>.
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-inner">
+      <div>Kyle Sprague &middot; <a href="https://github.com/ksprague1" target="_blank" rel="noopener">github.com/ksprague1</a></div>
+      <div class="footer-links">
+        <a href="../">Home</a>
+        <a href="#balatro">RLBalatro</a>
+        <a href="replays/">Replays</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../assets/data.js"></script>
+  <script src="../assets/app.js"></script>
+</body>
+</html>

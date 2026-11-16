@@ -1,49 +1,260 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-body {
-  margin: 0;
-  font-family: Arial, Helvetica, sans-serif;
-}
-
-.topnav {
-  overflow: hidden;
-  background-color: #333;
-}
-
-.topnav a {
-  float: left;
-  color: #f2f2f2;
-  text-align: center;
-  padding: 14px 16px;
-  text-decoration: none;
-  font-size: 17px;
-}
-.topnav a:hover {
-  background-color: #ddd;
-  color: black;
-}
-.topnav a.active {
-  background-color: #bf00bf;
-  color: white;
-}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kyle Sprague</title>
+  <meta name="description" content="Kyle Sprague — GPU physics simulations, video games, and reinforcement learning." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/styles.css" />
 </head>
 <body>
+  <header class="navbar">
+    <div class="container nav-inner">
+      <a class="brand" href="./">
+        <span class="brand-dot" aria-hidden="true"></span>
+        <span>Kyle Sprague</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary navigation">
+        <a href="./">Home</a>
+        <a href="ml/">ML &amp; RL</a>
+        <a href="ml/replays/">Replays</a>
+        <a href="#simulations">Old Simulations</a>
+        <a href="#past-work">Past Work</a>
+      </nav>
+      <div class="nav-actions">
+        <button id="theme-toggle" class="icon-btn" type="button">Light mode</button>
+        <a class="icon-btn" href="https://github.com/ksprague1" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </div>
+  </header>
 
-<div class="topnav">
-  <a class="active" href="#home">Home</a>
-  <a href="GPUIsing">Ising</a>
-  <a href="Clustering">Clustering</a>
-  <a href="DNAGrowth">DNAGrowth</a>
-  <a href="FDM">FDM</a>
-</div>
+  <main>
+    <section class="hero">
+      <div class="container hero-content">
+        <h1>Kyle Sprague</h1>
+        <p class="hero-lead">
+          Personal site for side projects and research.
+        </p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="ml/">ML &amp; RL (RLBalatro)</a>
+          <a class="btn" href="ml/replays/">Watch Replays</a>
+          <a class="btn" href="#simulations">Old Simulations</a>
+          <a class="btn" href="#past-work">Past Work</a>
+        </div>
+      </div>
+    </section>
 
-<div style="padding-left:16px">
-  <h2>Various Physical and Neural Models I'm Working On.</h2>
-  <p>This main page is just a navigation bar at the moment</p>
-</div>
+    <section id="simulations">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <h2>Old Simulations</h2>
+            <p class="section-desc">
+              Older WebGL and Canvas experiments that run directly in the browser.
+            </p>
+          </div>
+        </div>
 
+        <div class="card-grid">
+          <a class="project-card" href="GPUIsing/">
+            <div>
+              <div class="project-top">
+                <h3 class="project-title">GPU Ising Model</h3>
+                <span class="badge emerald">WebGL</span>
+              </div>
+              <p class="project-desc">
+                2D Ising spin lattice running on the GPU with interactive temperature and magnetic field controls.
+              </p>
+            </div>
+            <div class="project-links"><span>Open &rarr;</span></div>
+          </a>
+
+          <a class="project-card" href="FDM/">
+            <div>
+              <div class="project-top">
+                <h3 class="project-title">Fluid Dynamics (FDM)</h3>
+                <span class="badge">Simulation</span>
+              </div>
+              <p class="project-desc">
+                Finite difference method 2D fluid simulation with interactive velocity and boundary controls.
+              </p>
+            </div>
+            <div class="project-links"><span>Open &rarr;</span></div>
+          </a>
+
+          <a class="project-card" href="DNAGrowth/">
+            <div>
+              <div class="project-top">
+                <h3 class="project-title">DNA Growth</h3>
+                <span class="badge emerald">WebGL</span>
+              </div>
+              <p class="project-desc">
+                GPU cellular growth simulation seeded from pixel sprites.
+              </p>
+            </div>
+            <div class="project-links"><span>Open &rarr;</span></div>
+          </a>
+
+          <a class="project-card" href="NCA/">
+            <div>
+              <div class="project-top">
+                <h3 class="project-title">Neural Cellular Automata</h3>
+                <span class="badge">JavaScript</span>
+              </div>
+              <p class="project-desc">
+                Trained neural cellular automata running in the browser, growing and regenerating sprites from local rules.
+              </p>
+            </div>
+            <div class="project-links"><span>Open &rarr;</span></div>
+          </a>
+
+          <a class="project-card" href="Clustering/">
+            <div>
+              <div class="project-top">
+                <h3 class="project-title">Clustering</h3>
+                <span class="badge gold">Canvas</span>
+              </div>
+              <p class="project-desc">
+                Interactive 2D clustering and cleaving visualization.
+              </p>
+            </div>
+            <div class="project-links"><span>Open &rarr;</span></div>
+          </a>
+
+          <a class="project-card" href="ColorWheel/">
+            <div>
+              <div class="project-top">
+                <h3 class="project-title">Color Wheel</h3>
+                <span class="badge gold">Canvas</span>
+              </div>
+              <p class="project-desc">
+                Interactive color space experiment.
+              </p>
+            </div>
+            <div class="project-links"><span>Open &rarr;</span></div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section id="ml-preview">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <h2>Machine Learning &amp; Games</h2>
+            <p class="section-desc">
+              Recent reinforcement learning projects built around fast C++ game ports.
+            </p>
+          </div>
+          <a class="btn" href="ml/">Open ML Page &rarr;</a>
+        </div>
+
+        <div class="card-grid">
+          <a class="project-card" href="ml/#balatro">
+            <div>
+              <div class="project-top">
+                <h3 class="project-title">RLBalatro</h3>
+                <span class="badge gold">PPO &middot; C++17</span>
+              </div>
+              <p class="project-desc">
+                Headless C++17 port of Balatro 1.0.1o verified against the real Lua code, plus PPO agents
+                trained across all 15 decks and 8 stakes (up to 43.8% Gold Stake win rate and 97.0% White Stake).
+              </p>
+            </div>
+            <div class="project-links"><span>See results &amp; deck-stake table &rarr;</span></div>
+          </a>
+
+          <a class="project-card" href="ml/replays/">
+            <div>
+              <div class="project-top">
+                <h3 class="project-title">RLBalatro Replays</h3>
+                <span class="badge emerald">Video &amp; Play-by-Play</span>
+              </div>
+              <p class="project-desc">
+                Recorded Gold Stake Yellow Deck runs (median Ante 8 Boss loss and best Ante 11 Endless run)
+                with Ante/Blind jump controls and synced decision logs.
+              </p>
+            </div>
+            <div class="project-links"><span>Watch replays &rarr;</span></div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section id="past-work">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <h2>Past Work</h2>
+            <p class="section-desc">
+              Earlier research and open-source projects in digital chemistry, quantum physics, and games.
+            </p>
+          </div>
+        </div>
+
+        <div class="card-grid">
+          <article class="project-card">
+            <div>
+              <div class="project-top">
+                <h3 class="project-title">ChemGymRL</h3>
+                <span class="badge emerald">Digital Discovery</span>
+              </div>
+              <p class="project-desc">
+                Co-author and core developer of an open-source Gymnasium framework simulating chemistry lab
+                benches (reactions, extraction, distillation) for reinforcement learning. Built with collaborators
+                at uOttawa, Waterloo, the Vector Institute, and NRC Canada.
+              </p>
+              <div class="tag-row">
+                <span class="tag">Python</span>
+                <span class="tag">Gymnasium</span>
+                <span class="tag">Chemistry</span>
+              </div>
+            </div>
+            <div class="project-links">
+              <a href="https://chemgymrl.com/" target="_blank" rel="noopener">chemgymrl.com &rarr;</a>
+              <a href="https://github.com/chemgymrl/chemgymrl" target="_blank" rel="noopener">GitHub &rarr;</a>
+            </div>
+          </article>
+
+          <article class="project-card">
+            <div>
+              <div class="project-top">
+                <h3 class="project-title">NN-QSR</h3>
+                <span class="badge">Quantum Monte Carlo</span>
+              </div>
+              <p class="project-desc">
+                Neural network quantum state representations using transformer architectures for Quantum
+                Monte Carlo simulations of many-body systems.
+              </p>
+              <div class="tag-row">
+                <span class="tag">PyTorch</span>
+                <span class="tag">Transformers</span>
+                <span class="tag">QMC</span>
+              </div>
+            </div>
+            <div class="project-links">
+              <a href="https://github.com/ksprague1/NN-QSR" target="_blank" rel="noopener">GitHub &rarr;</a>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-inner">
+      <div>Kyle Sprague &middot; <a href="https://github.com/ksprague1" target="_blank" rel="noopener">github.com/ksprague1</a></div>
+      <div class="footer-links">
+        <a href="ml/">ML &amp; RL</a>
+        <a href="#simulations">Old Simulations</a>
+        <a href="#past-work">Past Work</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/app.js"></script>
 </body>
 </html>

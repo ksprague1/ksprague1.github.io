@@ -1,81 +1,109 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Color Wheel — Kyle Sprague</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/styles.css" />
+</head>
 <body>
+  <header class="navbar">
+    <div class="container nav-inner">
+      <a class="brand" href="../">
+        <span class="brand-dot" aria-hidden="true"></span>
+        <span>Kyle Sprague</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary navigation">
+        <a href="../">Home</a>
+        <a href="../ml/">ML &amp; RL</a>
+        <a href="../ml/replays/">Replays</a>
+        <a href="../#simulations">Old Simulations</a>
+        <a href="../#past-work">Past Work</a>
+      </nav>
+      <div class="nav-actions">
+        <button id="theme-toggle" class="icon-btn" type="button">Light mode</button>
+        <a class="icon-btn" href="https://github.com/ksprague1" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </div>
+  </header>
 
-<div class="slidecontainer">
-Theta: <span id="thetatext">0</span><br>
-<input type="range" min="0" max="360" value="0" class="slider" id="theta"><br>
-sc: <span id="sctext">1.0</span><br>
-<input type="range" min="0" max="100" value="100" class="slider" id="sc"><br>
-w: <span id="wtext">100</span><br>
-<input type="range" min="0" max="100" value="100" class="slider" id="w"><br>
+  <main class="sim-main">
+    <div class="container">
+      <div class="sim-header">
+        <h1>Color Wheel</h1>
+        <p>Adjust angle, scale, and offset to change the background color.</p>
+      </div>
 
+      <div class="sim-panel">
+        <div class="slidecontainer">
+          Theta: <span id="thetatext">0</span><br />
+          <input type="range" min="0" max="360" value="0" class="slider" id="theta" />
+          sc: <span id="sctext">1.0</span><br />
+          <input type="range" min="0" max="100" value="100" class="slider" id="sc" />
+          w: <span id="wtext">100</span><br />
+          <input type="range" min="0" max="100" value="100" class="slider" id="w" />
+          <button type="button" onclick="rand()">Random Color</button>
+        </div>
+      </div>
+    </div>
+  </main>
 
-<button type="button" onclick="rand()">Random Color</button>
-</div>
+  <script src="../assets/app.js"></script>
+  <script>
+    const $ = (q) => document.getElementById(q);
+    var theta = 360;
+    var sc = 1;
+    var w = 1;
 
+    $("theta").oninput = function () {
+      theta = this.value;
+      $("thetatext").innerHTML = theta.toString();
+      setbg();
+    };
 
-<script>
+    $("sc").oninput = function () {
+      sc = this.value / 100;
+      $("sctext").innerHTML = sc.toString();
+      setbg();
+    };
 
-const $ = q => document.getElementById(q);
-var theta = 360
-var sc = 1
-var w = 1;
+    $("w").oninput = function () {
+      w = this.value / 100;
+      $("wtext").innerHTML = w.toString();
+      setbg();
+    };
 
-$("theta").oninput = function() {
-  theta = this.value;
-  $('thetatext').innerHTML = theta.toString();
-  setbg();
-}
+    function angleToRGB(theta, sc, w) {
+      var r = (theta / 360 + 1.0 / 6) % 1.0;
+      var b = (theta / 360 + 3.0 / 6) % 1.0;
+      var g = (theta / 360 + 5.0 / 6) % 1.0;
+      r = (r < 1.0 / 3 ? 1 : r < 1.0 / 2 ? 3 - 6 * r : r < 5.0 / 6 ? 0 : 6 * r - 5) * sc + w;
+      g = (g < 1.0 / 3 ? 1 : g < 1.0 / 2 ? 3 - 6 * g : g < 5.0 / 6 ? 0 : 6 * g - 5) * sc + w;
+      b = (b < 1.0 / 3 ? 1 : b < 1.0 / 2 ? 3 - 6 * b : b < 5.0 / 6 ? 0 : 6 * b - 5) * sc + w;
+      return [r > 1 ? 1 : r, g > 1 ? 1 : g, b > 1 ? 1 : b];
+    }
 
-$("sc").oninput = function() {
-  sc = this.value/100;
-  $('sctext').innerHTML = sc.toString();
-  setbg();
-}
+    function rgbToHex(RGB) {
+      var r = Math.floor(RGB[0] * 255.9).toString(16);
+      var g = Math.floor(RGB[1] * 255.9).toString(16);
+      var b = Math.floor(RGB[2] * 255.9).toString(16);
+      r = r.length == 1 ? "0" + r : r;
+      g = g.length == 1 ? "0" + g : g;
+      b = b.length == 1 ? "0" + b : b;
+      return "#" + r + g + b;
+    }
 
-$("w").oninput = function() {
-  w = this.value/100;
-  $('wtext').innerHTML = w.toString();
-  setbg();
-}
+    function rand() {
+      var rv = [Math.random(), Math.random(), Math.random()];
+      document.body.style.background = rgbToHex(rv);
+    }
 
-//rgb generator
-function angleToRGB(theta,sc,w){
-
-var r=(theta/360+1.0/6)%1.0;
-var b=(theta/360+3.0/6)%1.0;
-var g=(theta/360+5.0/6)%1.0;
-//colorwheel assignment multiplied by the scaler sc
-r = (r<1.0/3?1:r<1.0/2?3-6*r:r<5.0/6?0:6*r-5)*sc+w;
-g = (g<1.0/3?1:g<1.0/2?3-6*g:g<5.0/6?0:6*g-5)*sc+w;
-b = (b<1.0/3?1:b<1.0/2?3-6*b:b<5.0/6?0:6*b-5)*sc+w;
-
-r=r>1?1:r;
-g=g>1?1:g;
-b=b>1?1:b;
-
-return [r,g,b]
-}
-
-function rgbToHex(RGB){
-  var r=Math.floor(RGB[0]*255.9).toString(16);
-  var g=Math.floor(RGB[1]*255.9).toString(16);
-  var b=Math.floor(RGB[2]*255.9).toString(16);
-  r=r.length==1?'0'+r:r; g=g.length==1?'0'+g:g; b=b.length==1?'0'+b:b;
-  var colHex='#'+r+g+b;
-  return colHex;
-}
-
-function rand(){
-var rv = [Math.random(),Math.random(),Math.random()]
-document.body.style.background = rgbToHex(rv)
-}
-
-function setbg() {
-  document.body.style.background = rgbToHex(angleToRGB(theta,sc,w));
-}
-</script>
-
+    function setbg() {
+      document.body.style.background = rgbToHex(angleToRGB(theta, sc, w));
+    }
+  </script>
 </body>
 </html>

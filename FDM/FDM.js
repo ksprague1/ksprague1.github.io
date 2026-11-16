@@ -36,7 +36,7 @@ function random_ones(dim,arr,N){
  }
 }
 
-const gpu = new GPU();
+const gpu = new (GPU.GPU || GPU)();
 
 //going to do max test reductions
 
@@ -222,7 +222,7 @@ return a[this.thread.y][this.thread.x];
 
 const toperm = gpu.createKernel(function(a) {
 return 6-4*a[this.thread.y][this.thread.x];
-},{output: [SIZE, SIZE],pipeline: true})
+},{output: [SIZE, SIZE],pipeline: true,immutable: true})
 
 const SOR = gpu.createKernel(function(V,p,eps,mutable,w,h,parity,size) {
     let i=this.thread.y
@@ -465,7 +465,8 @@ function run(){
     grid2 = Propose(grid,1/kT,mew,n,SIZE)
     grid.delete()
     
-    toperm(grid);
+    eps.delete();
+    eps = toperm(grid2);
     nextVoltage(400,eps);
     if (!toggle){
     Erender(ctx2,V);
